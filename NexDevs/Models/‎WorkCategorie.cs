@@ -12,4 +12,4 @@ namespace NexDevs.Models
         public string CategoryImageUrl { get; set; }
     }
 }
-}
+
