@@ -54,7 +54,10 @@
             </div>
             <div class="form-group">
                 <label asp-for="ProfileType" class="control-label"></label>
-                <input asp-for="ProfileType" class="form-control" />
+                <select asp-for="ProfileType" class="form-control">
+                    <option value="U" selected="selected">User</option>
+                    <option value="A">Admin</option>
+                </select>
                 <span asp-validation-for="ProfileType" class="text-danger"></span>
             </div>
             <div class="form-group d-flex justify-content-between align-items-center mt-3">
