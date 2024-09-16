@@ -1,0 +1,30 @@
+﻿@model NexDevs.Models.WorkCategorie
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>WorkCategorie</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CategoryName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CategoryName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CategoryImageUrl)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CategoryImageUrl)
+        </dd>
+    </dl>
+</div>
+<div class="form-group d-flex align-items-center mt-3 gap-3">
+    <a asp-action="Edit" class="btn btn-primary" asp-route-id="@Model?.CategoryId">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
