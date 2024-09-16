@@ -17,9 +17,17 @@ namespace NexDevs.Controllers
 
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(string search)
         {
-            return View(_context.Users.ToList());
+            var users = from user in _context.Users
+                        select user;
+
+            if (!String.IsNullOrEmpty(search))
+            {
+                users = users.Where(user => user.FirstName.Contains(search) || user.LastName.Contains(search));
+            }
+
+            return View(await users.ToListAsync());
         }
 
         [HttpGet]
