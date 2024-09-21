@@ -1,0 +1,99 @@
+﻿@model IEnumerable<NexDevs.Models.WorkProfile>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center my-3">
+    <p class="m-0">
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    </p>
+
+    <form asp-controller="WorkProfiles" asp-action="Index" method="get">
+        <div class="d-flex gap-3">
+            <input type="text" class="form-control" name="search" placeholder="Search by Name" id="inputDefault">
+            <input type="submit" value="Search" class="btn btn-dark" />
+        </div>
+    </form>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Number)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Password)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Province)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.City)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkDescription)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ProfilePictureUrl)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Category)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ProfileType)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Number)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Password)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Province)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.City)
+            </td>
+                <td>
+                    @Html.Raw(item.WorkDescription.Length > 50
+                             ? item.WorkDescription.Substring(0, 50) + "..."
+                             : item.WorkDescription)
+                </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProfilePictureUrl)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Category.CategoryName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProfileType)
+            </td>
+                <td class="text-center">
+                    <a asp-action="Edit" asp-route-id="@item.WorkId" class="btn btn-primary btn-sm">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.WorkId" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.WorkId" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+        </tr>
+}
+    </tbody>
+</table>

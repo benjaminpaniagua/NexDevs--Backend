@@ -11,11 +11,9 @@
     </p>
 
     <form asp-controller="WorkCategories" asp-action="Index" method="get">
-        <div class="d-flex gap-3 align-items-center justify-content-end">
-            <h6 class="m-0">
-                Search by First or Last name:
-            </h6><input type="text" name="search" class="form-text input-group-text" />
-            <input type="submit" value="search" class="btn btn-dark" />
+        <div class="d-flex gap-3">
+            <input type="text" class="form-control" name="search" placeholder="Search by Name" id="inputDefault">
+            <input type="submit" value="Search" class="btn btn-dark" />
         </div>
     </form>
 </div>

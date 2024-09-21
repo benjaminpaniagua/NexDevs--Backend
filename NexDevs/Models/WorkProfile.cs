@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NexDevs.Models
 {
@@ -24,6 +25,9 @@ namespace NexDevs.Models
         public string ProfilePictureUrl { get; set; }
 
         public int CategoryId { get; set; }
+
+        [ForeignKey("CategoryId")]
+        public WorkCategorie Category { get; set; }
 
         public char ProfileType { get; set; }
     }
