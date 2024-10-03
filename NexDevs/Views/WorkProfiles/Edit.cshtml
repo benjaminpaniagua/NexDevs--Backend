@@ -53,11 +53,11 @@
                 <input asp-for="ProfilePictureUrl" class="form-control" />
                 <span asp-validation-for="ProfilePictureUrl" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            @* <div class="form-group">
                 <label asp-for="CategoryId" class="control-label"></label>
                 @Html.DropDownListFor(model => model.CategoryId, (SelectList)ViewBag.CategoryId, "Select Category", new { @class = "form-control" })
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
+            </div> *@
             <div class="form-group">
                 <label asp-for="ProfileType" class="control-label"></label>
                 <input asp-for="ProfileType" class="form-control" />
