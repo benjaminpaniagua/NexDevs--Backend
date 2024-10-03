@@ -37,7 +37,6 @@ namespace NexDevs.Controllers
                 return NotFound();
             }
             var workProfile = await _context.WorkProfiles
-                .Include(w => w.Category)
                 .FirstOrDefaultAsync(m => m.WorkId == id);
 
             if (workProfile == null)
@@ -66,7 +65,6 @@ namespace NexDevs.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewBag.CategoryId = new SelectList(_context.WorkCategories, "CategoryId", "CategoryName", workProfile.CategoryId);
             return View(workProfile);
         }
 
@@ -84,7 +82,6 @@ namespace NexDevs.Controllers
                 return NotFound();
             }
 
-            ViewBag.CategoryId = new SelectList(_context.WorkCategories, "CategoryId", "CategoryName", workProfile.CategoryId);
             return View(workProfile);
         }
 
@@ -119,7 +116,6 @@ namespace NexDevs.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.CategoryId = new SelectList(_context.WorkCategories, "CategoryId", "CategoryName", workProfile.CategoryId);
             return View(workProfile);
         }
 
@@ -132,7 +128,6 @@ namespace NexDevs.Controllers
             }
 
             var workProfile = await _context.WorkProfiles
-                .Include(w => w.Category)
                 .FirstOrDefaultAsync(m => m.WorkId == id);
             if (workProfile == null)
             {

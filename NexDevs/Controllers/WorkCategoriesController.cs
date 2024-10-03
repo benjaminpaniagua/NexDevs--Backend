@@ -1,35 +1,44 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using NexDevs.Context;
-using NexDevs.Models;
+﻿using NexDevs.Models;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Net.Http.Headers;
+using System.Net;
 
 namespace NexDevs.Controllers
 {
     public class WorkCategoriesController : Controller
     {
-        private readonly DbContextNetwork _context;
+        private NetworkAPI networkAPI;
+        private HttpClient client;
 
-        public WorkCategoriesController(DbContextNetwork context)
+        public WorkCategoriesController()
         {
-            _context = context;
-        }
-        public IActionResult Index()
-        {
-            return View();
+            networkAPI = new NetworkAPI();
+            client = networkAPI.Initial();
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index(string search)
+        public async Task<IActionResult> Index()
         {
-            var categories = from user in _context.WorkCategories
-                             select user;
+            List<WorkCategory> listWorkCategories = new List<WorkCategory>();
 
-            if (!String.IsNullOrEmpty(search))
+
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.GetAsync("WorkCategories/Listado");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (response.IsSuccessStatusCode)
             {
-                categories = categories.Where(workCategorie => workCategorie.CategoryName.Contains(search));
+                var result = await response.Content.ReadAsStringAsync();
+
+                listWorkCategories = JsonConvert.DeserializeObject<List<WorkCategory>>(result);
             }
 
-            return View(await categories.ToListAsync());
+            return View(listWorkCategories);
         }
 
         [HttpGet]
@@ -39,121 +48,174 @@ namespace NexDevs.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind] WorkCategorie workCategorie)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind] WorkCategory workCategory)
         {
-            if (ModelState.IsValid)
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            var add = client.PostAsJsonAsync<WorkCategory>("WorkCategories/Agregar", workCategory);
+            await add;
+
+            var result = add.Result;
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (result.IsSuccessStatusCode)
             {
-                _context.Add(workCategorie);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "WorkCategories");
             }
-            return View(workCategorie);
+            else
+            {
+                TempData["Mensaje"] = "No se logró registrar la categoria";
+
+                return View(workCategory);
+            }
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
+            var workCategory = new WorkCategory();
 
-            if (id == null)
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.GetAsync($"WorkCategories/ConsultarId?id={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (response.IsSuccessStatusCode)
             {
-                return NotFound();
+                var result = response.Content.ReadAsStringAsync().Result;
+
+                workCategory = JsonConvert.DeserializeObject<WorkCategory>(result);
             }
-            var workCategorie = await _context.WorkCategories.FindAsync(id);
-            if (workCategorie == null)
-            {
-                return NotFound();
-            }
-            return View(workCategorie);
+
+            return View(workCategory);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind] WorkCategorie workCategorie)
+        public async Task<IActionResult> Edit([Bind] WorkCategory workCategory)
         {
-            if (ModelState.IsValid)
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            var result = await client.PutAsJsonAsync<WorkCategory>("WorkCategories/Editar", workCategory);
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (result.IsSuccessStatusCode)
             {
-                var temp = _context.WorkCategories.FirstOrDefault(x => x.CategoryId == workCategorie.CategoryId);
-
-                if (temp != null)
-                {
-                    try
-                    {
-                        temp.CategoryId = workCategorie.CategoryId;
-                        temp.CategoryName = workCategorie.CategoryName;
-                        temp.CategoryImageUrl = workCategorie.CategoryImageUrl;
-
-                        _context.WorkCategories.Update(temp);
-                        await _context.SaveChangesAsync();
-                        return RedirectToAction("Index");
-                    }
-                    catch (Exception ex)
-                    {
-                        TempData["Error"] = "Error: " + ex.InnerException; //build a message error to show whith one alert
-                        return View(workCategorie); //send the user to the view
-
-                    }
-                }
-                else
-                {
-                    return NotFound();
-                }
+                return RedirectToAction("Index");
             }
+            else
             {
-                TempData["Error"] = "Verify data"; //build a message error to show whith one alert
+                TempData["Mensaje"] = "Datos incorrectos";
 
-                return View(workCategorie);
+                return View(result);
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
+            var workCategory = new WorkCategory();
+
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage mensaje = await client.GetAsync($"WorkCategories/ConsultarId?id={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (mensaje.IsSuccessStatusCode)
             {
-                return NotFound();
+                var result = mensaje.Content.ReadAsStringAsync().Result;
+
+                //conversion json a obj
+                workCategory = JsonConvert.DeserializeObject<WorkCategory>(result);
             }
 
-            var user = await _context.WorkCategories.FirstOrDefaultAsync(u => u.CategoryId == id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return View(user);
+            return View(workCategory);
         }
 
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var workCategorie = await _context.WorkCategories.FindAsync(id);
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            if (workCategorie == null)
-            {
-                return View();
-            }
-            _context.WorkCategories.Remove(workCategorie);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            HttpResponseMessage response = await client.DeleteAsync($"WorkCategories/Eliminar?id={id}");
+
+            return RedirectToAction("Index");
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
+            var workCategory = new WorkCategory();
+
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.GetAsync($"WorkCategories/ConsultarId?id={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (response.IsSuccessStatusCode)
             {
-                return NotFound();
+                var result = response.Content.ReadAsStringAsync().Result;
+
+                workCategory = JsonConvert.DeserializeObject<WorkCategory>(result);
             }
 
-            var workCategorie = await _context.WorkCategories.FirstOrDefaultAsync(u => u.CategoryId == id);
+            return View(workCategory);
+        }
 
-            if (workCategorie == null)
+        private AuthenticationHeaderValue AutorizacionToken()
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            AuthenticationHeaderValue autorizacion = null;
+
+            if (token != null && token.Length != 0)
             {
-                return NotFound();
+                autorizacion = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            return View(workCategorie);
+            return autorizacion;
+        }
+
+        private bool ValidateSession(HttpStatusCode result)
+        {
+            //The token has expired so the session must be closed
+            if (result == HttpStatusCode.Unauthorized)
+            {
+                TempData["MensajeSesion"] = "Su sesion ha expirado o no es válida";
+                return false;
+            }
+            else
+            {
+                TempData["MensajeSesion"] = null;
+                return true;
+            }
         }
     }
 }

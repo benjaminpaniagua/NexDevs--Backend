@@ -44,9 +44,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.ProfilePictureUrl)
             </th>
-            <th>
+            @* <th>
                 @Html.DisplayNameFor(model => model.Category)
-            </th>
+            </th> *@
             <th>
                 @Html.DisplayNameFor(model => model.ProfileType)
             </th>
@@ -74,17 +74,17 @@
             <td>
                 @Html.DisplayFor(modelItem => item.City)
             </td>
-                <td>
-                    @Html.Raw(item.WorkDescription.Length > 50
-                             ? item.WorkDescription.Substring(0, 50) + "..."
-                             : item.WorkDescription)
-                </td>
+            <td>
+                @Html.Raw(item.WorkDescription.Length > 50
+                            ? item.WorkDescription.Substring(0, 50) + "..."
+                            : item.WorkDescription)
+            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.ProfilePictureUrl)
             </td>
-            <td>
+            @* <td>
                 @Html.DisplayFor(modelItem => item.Category.CategoryName)
-            </td>
+            </td> *@
             <td>
                 @Html.DisplayFor(modelItem => item.ProfileType)
             </td>

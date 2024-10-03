@@ -24,11 +24,8 @@ namespace NexDevs.Models
 
         public string ProfilePictureUrl { get; set; }
 
-        public int CategoryId { get; set; }
-
-        [ForeignKey("CategoryId")]
-        public WorkCategorie Category { get; set; }
-
         public char ProfileType { get; set; }
+        
+        public string Salt { get; set; }
     }
 }

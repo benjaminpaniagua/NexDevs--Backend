@@ -1,4 +1,4 @@
-﻿@model IEnumerable<NexDevs.Models.WorkCategorie>
+﻿@model IEnumerable<NexDevs.Models.WorkCategory>
 
 @{
     ViewData["Title"] = "Index";
@@ -11,10 +11,6 @@
     </p>
 
     <form asp-controller="WorkCategories" asp-action="Index" method="get">
-        <div class="d-flex gap-3">
-            <input type="text" class="form-control" name="search" placeholder="Search by Name" id="inputDefault">
-            <input type="submit" value="Search" class="btn btn-dark" />
-        </div>
     </form>
 </div>
 
@@ -22,10 +18,10 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.CategoryName)
+                @Html.DisplayNameFor(model => model.WorkId)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.CategoryImageUrl)
+                @Html.DisplayNameFor(model => model.CategoryId)
             </th>
             <th></th>
         </tr>
@@ -35,15 +31,15 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.CategoryName)
+                    @Html.DisplayFor(modelItem => item.WorkId)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.CategoryImageUrl)
+                    @Html.DisplayFor(modelItem => item.CategoryId)
                 </td>
                 <td class="text-center">
-                    <a asp-action="Edit" asp-route-id="@item.CategoryId" class="btn btn-primary btn-sm">Edit</a>
-                    <a asp-action="Details" asp-route-id="@item.CategoryId" class="btn btn-info btn-sm">Details</a>
-                    <a asp-action="Delete" asp-route-id="@item.CategoryId" class="btn btn-danger btn-sm">Delete</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-sm">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Delete</a>
                 </td>
             </tr>
         }
