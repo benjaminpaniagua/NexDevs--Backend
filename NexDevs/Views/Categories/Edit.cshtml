@@ -20,6 +20,10 @@
                 <span asp-validation-for="CategoryName" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label>Category Image</label>
+                <img src="@Model.CategoryImageUrl" alt="Category Image" width="100" />
+            </div>
+            <div class="form-group">
                 <label asp-for="CategoryImageUrl" class="control-label">Image</label>
                 @* aqui se configura el  input para subir un archivo *@
                 <input asp-for="CategoryImageUrl" class="form-control" name="CategoryImageUrl" type="file" />

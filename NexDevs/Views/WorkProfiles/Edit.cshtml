@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Edit</h1>
@@ -10,7 +11,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="WorkId" />
             <div class="form-group">
@@ -49,15 +50,14 @@
                 <span asp-validation-for="WorkDescription" class="text-danger"></span>
             </div>
             <div class="form-group">
+    <label>Current Profile Picture</label>
+    <img src="@Model.ProfilePictureUrl" alt="Profile Picture" width="100" />
+</div>
+            <div class="form-group">
                 <label asp-for="ProfilePictureUrl" class="control-label"></label>
-                <input asp-for="ProfilePictureUrl" class="form-control" />
+                <input asp-for="ProfilePictureUrl" class="form-control" name="ProfilePictureUrl" type="file"/>
                 <span asp-validation-for="ProfilePictureUrl" class="text-danger"></span>
             </div>
-            @* <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                @Html.DropDownListFor(model => model.CategoryId, (SelectList)ViewBag.CategoryId, "Select Category", new { @class = "form-control" })
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div> *@
             <div class="form-group">
                 <label asp-for="ProfileType" class="control-label"></label>
                 <input asp-for="ProfileType" class="form-control" />

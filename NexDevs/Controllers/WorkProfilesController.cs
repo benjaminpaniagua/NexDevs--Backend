@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Net;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace NexDevs.Controllers
 {
@@ -43,7 +44,7 @@ namespace NexDevs.Controllers
                 listWorkProfiles = JsonConvert.DeserializeObject<List<WorkProfile>>(result);
             }
 
-            if (!String.IsNullOrEmpty(search))
+            if (!string.IsNullOrEmpty(search))
             {
                 listWorkProfiles = listWorkProfiles
                                     .Where(workProfile => workProfile.Name.Contains(search))
@@ -187,10 +188,7 @@ namespace NexDevs.Controllers
                         Directory.CreateDirectory(uploadsFolder);
                     }
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureUrl.FileName;
-
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureUrl.FileName.Replace(" ", "_");
                     var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                     using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -200,18 +198,20 @@ namespace NexDevs.Controllers
 
                     workProfile.ProfilePictureUrl = "/images/workProfile/" + uniqueFileName;
                 }
+                else
+                {
+                    HttpResponseMessage response = await client.GetAsync($"WorkProfile/BuscarID?id={workProfile.WorkId}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var resultado = await response.Content.ReadAsStringAsync();
+                        var profileDtos = JsonConvert.DeserializeObject<WorkProfile>(resultado);
+                        workProfile.ProfilePictureUrl = profileDtos?.ProfilePictureUrl ?? workProfile.ProfilePictureUrl;
+                    }
+                }
 
                 workProfile.WorkId = 0;
 
-                if (profilePictureUrl == null)
-                {
-                    HttpResponseMessage response = await client.GetAsync($"WorkProfile/BuscarID?id={workProfile.WorkId}");
-                    var resultado = response.Content.ReadAsStringAsync().Result;
-                    var profileDtos = JsonConvert.DeserializeObject<WorkProfile>(resultado);
-                    workProfile.ProfilePictureUrl = profileDtos.ProfilePictureUrl;
-                }
-
-                var result = await client.PutAsJsonAsync<WorkProfile>("WorkProfile/Editarr", workProfile);
+                var result = await client.PutAsJsonAsync<WorkProfile>("WorkProfile/Editar", workProfile);
 
                 // if (ValidateSession(response.StatusCode) == false)
                 // {
@@ -241,16 +241,16 @@ namespace NexDevs.Controllers
 
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage mensaje = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
+            HttpResponseMessage profile = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
 
             // if (ValidateSession(response.StatusCode) == false)
             // {
             //     return RedirectToAction("Logout", "Users");
             // }
 
-            if (mensaje.IsSuccessStatusCode)
+            if (profile.IsSuccessStatusCode)
             {
-                var result = mensaje.Content.ReadAsStringAsync().Result;
+                var result = profile.Content.ReadAsStringAsync().Result;
 
                 workProfile = JsonConvert.DeserializeObject<WorkProfile>(result);
             }
@@ -259,9 +259,10 @@ namespace NexDevs.Controllers
         }
 
 
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string email)
+        [ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
@@ -270,7 +271,34 @@ namespace NexDevs.Controllers
             //     return RedirectToAction("Logout", "Users");
             // }
 
-            HttpResponseMessage response = await client.DeleteAsync($"WorkProfile/Eliminar?email={email}");
+            var workProfile = new WorkProfile();
+
+            HttpResponseMessage profile = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
+            
+            if (profile.IsSuccessStatusCode)
+            {
+                var result = profile.Content.ReadAsStringAsync().Result;
+
+                workProfile = JsonConvert.DeserializeObject<WorkProfile>(result);
+
+                if (workProfile != null)
+                {
+                    HttpResponseMessage response = await client.DeleteAsync($"WorkProfile/Eliminar?email={workProfile.Email}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return RedirectToAction("Index");
+                    }
+                    else
+                    {
+                        TempData["Mensaje"] = "Error deleting the profile.";
+                    }
+                }
+            }
+            else
+            {
+                TempData["Mensaje"] = "Profile not found.";
+            }
 
             return RedirectToAction("Index");
         }
