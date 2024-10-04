@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Index</h1>
@@ -44,9 +45,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.ProfilePictureUrl)
             </th>
-            @* <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th> *@
             <th>
                 @Html.DisplayNameFor(model => model.ProfileType)
             </th>
@@ -82,16 +80,13 @@
             <td>
                 @Html.DisplayFor(modelItem => item.ProfilePictureUrl)
             </td>
-            @* <td>
-                @Html.DisplayFor(modelItem => item.Category.CategoryName)
-            </td> *@
             <td>
                 @Html.DisplayFor(modelItem => item.ProfileType)
             </td>
                 <td class="text-center">
-                    <a asp-action="Edit" asp-route-id="@item.WorkId" class="btn btn-primary btn-sm">Edit</a>
-                    <a asp-action="Details" asp-route-id="@item.WorkId" class="btn btn-info btn-sm">Details</a>
-                    <a asp-action="Delete" asp-route-id="@item.WorkId" class="btn btn-danger btn-sm">Delete</a>
+                    @Html.ActionLink("Edit", "Edit", new { id = item.WorkId }, new { @class = "btn btn-primary btn-sm" })
+                    @Html.ActionLink("Details", "Details", new { id = item.WorkId }, new { @class = "btn btn-info btn-sm" })
+                    @Html.ActionLink("Delete", "Delete", new { id = item.WorkId }, new { @class = "btn btn-danger btn-sm" })
                 </td>
         </tr>
 }
