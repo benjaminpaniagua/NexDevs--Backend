@@ -1,33 +1,50 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using NexDevs.Context;
-using NexDevs.Controllers;
-using NexDevs.Models;
+﻿using NexDevs.Models;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Net.Http.Headers;
+using System.Net;
 
 namespace NexDevs.Controllers
 {
     public class SkillsController : Controller
     {
 
-        private readonly DbContextNetwork _context;
+        private NetworkAPI networkAPI;
+        private HttpClient client;
 
-        public SkillsController(DbContextNetwork context)
+        public SkillsController()
         {
-            _context = context;
+            networkAPI = new NetworkAPI();
+            client = networkAPI.Initial();
         }
 
         public async Task<IActionResult> Index(string search)
         {
+            List<Skill> listSkills = new List<Skill>();
 
-            var skills = from skill in _context.Skills
-                         select skill;
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.GetAsync("Skills/Listado");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                listSkills = JsonConvert.DeserializeObject<List<Skill>>(result);
+            }
 
             if (!String.IsNullOrEmpty(search))
             {
-                skills = skills.Where(skill => skill.SkillName.Contains(search));
+                listSkills = listSkills
+                    .Where(skill => skill.SkillName.Contains(search, StringComparison.OrdinalIgnoreCase))
+                                .ToList();
             }
 
-            return View(await skills.ToListAsync());
+            return View(listSkills);
         }
 
         [HttpGet]
@@ -37,29 +54,57 @@ namespace NexDevs.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind] Skill skill)
         {
             if (ModelState.IsValid)
             {
-                _context.Skills.Add(skill);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var add = client.PostAsJsonAsync<Skill>("Skills/Agregar", skill);
+                await add;
+
+                var result = add.Result;
+
+                // if (ValidateSession(response.StatusCode) == false)
+                // {
+                //     return RedirectToAction("Logout", "Users");
+                // }
+
+                if (result.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index", "Skills");
+                }
+                else
+                {
+                    TempData["Mensaje"] = "No se logró registrar la skill";
+
+                    return View(skill);
+                }
             }
             return View(skill);
         }
 
+
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
+            var skill = new Skill();
+
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.GetAsync($"Skills/Consultar?Id={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (response.IsSuccessStatusCode)
             {
-                return NotFound();
+                var result = response.Content.ReadAsStringAsync().Result;
+
+                skill = JsonConvert.DeserializeObject<Skill>(result);
             }
-            var skill = await _context.Skills.FindAsync(id);
-            if (skill == null)
-            {
-                return NotFound();
-            }
+
             return View(skill);
         }
 
@@ -69,81 +114,120 @@ namespace NexDevs.Controllers
         {
             if (ModelState.IsValid)
             {
-                var temp = _context.Skills.FirstOrDefault(x => x.Id == skill.Id);
-                if (temp != null)
+                var result = await client.PutAsJsonAsync<Skill>("Skills/Editar", skill);
+
+                // if (ValidateSession(response.StatusCode) == false)
+                // {
+                //     return RedirectToAction("Logout", "Users");
+                // }
+
+                if (result.IsSuccessStatusCode)
                 {
-                    try
-                    {
-                        temp.SkillName = skill.SkillName;
-
-                        _context.Skills.Update(temp);
-                        await _context.SaveChangesAsync();
-
-                        return RedirectToAction("Index");
-                    }
-                    catch (Exception ex)
-                    {
-                        TempData["Error"] = "Error: " + ex.InnerException?.Message;
-                        return View(skill);
-                    }
+                    return RedirectToAction("Index");
                 }
                 else
                 {
-                    return NotFound();
+                    TempData["Mensaje"] = "Datos incorrectos";
+
+                    return View(skill);
                 }
             }
-
             return View(skill);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var skill = await _context.Skills.FirstOrDefaultAsync(u => u.Id == id);
+            var skill = new Skill();
 
-            if (skill == null)
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage mensaje = await client.GetAsync($"Skills/Consultar?Id={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (mensaje.IsSuccessStatusCode)
             {
-                return NotFound();
+                var result = mensaje.Content.ReadAsStringAsync().Result;
+
+                //conversion json a obj
+                skill = JsonConvert.DeserializeObject<Skill>(result);
             }
 
             return View(skill);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if(id == null)
-            {
-                return NotFound();
-            }
-
-            var skill = await _context.Skills.FirstOrDefaultAsync(x => x.Id == id);
-            if (skill == null) 
-            {
-                return NotFound();
-            }
-
-            return View(skill);
-        }
-
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var skill = await _context.Skills.FindAsync(id);
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            if (skill == null)
-            {
-                return View();
-            }
-            _context.Skills.Remove(skill);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            HttpResponseMessage response = await client.DeleteAsync($"Skills/Eliminar?Id={id}");
+
+            return RedirectToAction("Index");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var skill = new Skill();
+
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.GetAsync($"Skills/Consultar?Id={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadAsStringAsync().Result;
+
+                skill = JsonConvert.DeserializeObject<Skill>(result);
+            }
+
+            return View(skill);
+        }
+
+        private AuthenticationHeaderValue AutorizacionToken()
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            AuthenticationHeaderValue autorizacion = null;
+
+            if (token != null && token.Length != 0)
+            {
+                autorizacion = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            return autorizacion;
+        }
+
+        private bool ValidateSession(HttpStatusCode result)
+        {
+            //The token has expired so the session must be closed
+            if (result == HttpStatusCode.Unauthorized)
+            {
+                TempData["MensajeSesion"] = "Su sesion ha expirado o no es válida";
+                return false;
+            }
+            else
+            {
+                TempData["MensajeSesion"] = null;
+                return true;
+            }
+        }
     }
 }
