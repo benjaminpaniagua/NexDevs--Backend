@@ -209,8 +209,6 @@ namespace NexDevs.Controllers
                     }
                 }
 
-                workProfile.WorkId = 0;
-
                 var result = await client.PutAsJsonAsync<WorkProfile>("WorkProfile/Editar", workProfile);
 
                 // if (ValidateSession(response.StatusCode) == false)

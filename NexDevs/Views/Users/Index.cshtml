@@ -93,9 +93,11 @@
                     @profileType
                 </td>
                 <td class="text-center">
-                    <a asp-action="Edit" asp-route-id="@item.UserId" class="btn btn-primary btn-sm">Edit</a>
-                    <a asp-action="Details" asp-route-id="@item.UserId" class="btn btn-info btn-sm mt-2">Details</a>
-                    <a asp-action="Delete" asp-route-id="@item.UserId" class="btn btn-danger btn-sm mt-2">Delete</a>
+                    <div class ="btn-group">
+                        @Html.ActionLink("Edit", "Edit", new { email = item.Email }, new { @class = "btn btn-outline-dark btn-sm" })
+                        @Html.ActionLink("Details", "Details", new { email = item.Email }, new { @class = "btn btn-outline-dark btn-sm" })
+                        @Html.ActionLink("Delete", "Delete", new { email = item.Email }, new { @class = "btn btn-outline-dark btn-sm" })
+                    </div>
                 </td>
             </tr>
         }

@@ -104,7 +104,7 @@ namespace NexDevs.Controllers
 
                 //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-                var add = client.PostAsJsonAsync<User>("Users/Agregar", user);
+                var add = client.PostAsJsonAsync<User>("/Users/CrearCuenta", user);
                 await add;
 
                 var result = add.Result;
@@ -116,7 +116,7 @@ namespace NexDevs.Controllers
 
                 if (result.IsSuccessStatusCode)
                 {
-                    return RedirectToAction("Index", "User");
+                    return RedirectToAction("Index", "Users");
                 }
                 else
                 {
@@ -129,13 +129,13 @@ namespace NexDevs.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(string email)
         {
             var user = new User();
 
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage response = await client.GetAsync($"Users/Consultar?UserId={id}");
+            HttpResponseMessage response = await client.GetAsync($"Users/BuscarEmail?email={email}");
 
             // if (ValidateSession(response.StatusCode) == false)
             // {
@@ -182,11 +182,10 @@ namespace NexDevs.Controllers
 
                     user.ProfilePictureUrl = "/images/users/" + uniqueFileName;
                 }
-
                 //Verificamos si el campo de la imagen viene vacio y de asignamos la misma imagen que tenía para que no de problemas
                 if (profilePictureUrl == null)
                 {
-                    HttpResponseMessage response = await client.GetAsync($"Users/Consultar?UserId={user.UserId}");
+                    HttpResponseMessage response = await client.GetAsync($"Users/BuscarEmail?email={user.Email}");
                     var resultado = response.Content.ReadAsStringAsync().Result;
                     var userDtos = JsonConvert.DeserializeObject<User>(resultado);
                     user.ProfilePictureUrl = userDtos.ProfilePictureUrl;
@@ -214,13 +213,13 @@ namespace NexDevs.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(string email)
         {
             var user = new User();
 
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage mensaje = await client.GetAsync($"Users/Consultar?UserId={id}");
+            HttpResponseMessage mensaje = await client.GetAsync($"Users/BuscarEmail?email={email}");
 
             // if (ValidateSession(response.StatusCode) == false)
             // {
@@ -241,28 +240,28 @@ namespace NexDevs.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ActionName("Delete")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(string email)
         {
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.DeleteAsync($"Users/Eliminar?email={email}");
 
             // if (ValidateSession(response.StatusCode) == false)
             // {
             //     return RedirectToAction("Logout", "Users");
             // }
 
-            HttpResponseMessage response = await client.DeleteAsync($"Users/Eliminar?UserId={id}");
-
             return RedirectToAction("Index");
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(string email)
         {
             var user = new User();
 
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage response = await client.GetAsync($"Users/Consultar?UserId={id}");
+            HttpResponseMessage response = await client.GetAsync($"Users/BuscarEmail?email={email}");
 
             // if (ValidateSession(response.StatusCode) == false)
             // {
