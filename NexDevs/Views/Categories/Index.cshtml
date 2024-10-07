@@ -38,9 +38,12 @@
                     @Html.DisplayFor(modelItem => item.CategoryImageUrl)
                 </td>
                 <td class="text-center">
-                    @Html.ActionLink("Edit", "Edit", new { id = item.CategoryId }, new { @class = "btn btn-primary btn-sm" })
-                    @Html.ActionLink("Details", "Details", new { id = item.CategoryId }, new { @class = "btn btn-info btn-sm" })
-                    @Html.ActionLink("Delete", "Delete", new { id = item.CategoryId }, new { @class = "btn btn-danger btn-sm" })
+                    <div class ="btn-group">
+                        @Html.ActionLink("Edit", "Edit", new { id = item.CategoryId }, new { @class = "btn btn-outline-dark btn-sm" })
+                        @Html.ActionLink("Details", "Details", new { id = item.CategoryId }, new { @class = "btn btn-outline-dark btn-sm" })
+                        @Html.ActionLink("Delete", "Delete", new { id = item.CategoryId }, new { @class = "btn btn-outline-dark btn-sm" })
+                    </div>
+                </td>
             </tr>
         }
     </tbody>

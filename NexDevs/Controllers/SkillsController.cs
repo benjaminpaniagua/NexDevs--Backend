@@ -37,7 +37,7 @@ namespace NexDevs.Controllers
                 listSkills = JsonConvert.DeserializeObject<List<Skill>>(result);
             }
 
-            if (!String.IsNullOrEmpty(search))
+            if (!string.IsNullOrEmpty(search))
             {
                 listSkills = listSkills
                     .Where(skill => skill.SkillName.Contains(search, StringComparison.OrdinalIgnoreCase))
@@ -91,7 +91,7 @@ namespace NexDevs.Controllers
 
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage response = await client.GetAsync($"Skills/Consultar?Id={id}");
+            HttpResponseMessage response = await client.GetAsync($"Skills/Consultar?skillId={id}");
 
             // if (ValidateSession(response.StatusCode) == false)
             // {
@@ -142,7 +142,7 @@ namespace NexDevs.Controllers
 
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage mensaje = await client.GetAsync($"Skills/Consultar?Id={id}");
+            HttpResponseMessage mensaje = await client.GetAsync($"Skills/Consultar?skillId={id}");
 
             // if (ValidateSession(response.StatusCode) == false)
             // {
@@ -166,14 +166,11 @@ namespace NexDevs.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
+            HttpResponseMessage response = await client.DeleteAsync($"Skills/Eliminar?id={id}");
             // if (ValidateSession(response.StatusCode) == false)
             // {
             //     return RedirectToAction("Logout", "Users");
             // }
-
-            HttpResponseMessage response = await client.DeleteAsync($"Skills/Eliminar?Id={id}");
-
             return RedirectToAction("Index");
         }
 
@@ -184,7 +181,7 @@ namespace NexDevs.Controllers
 
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage response = await client.GetAsync($"Skills/Consultar?Id={id}");
+            HttpResponseMessage response = await client.GetAsync($"Skills/Consultar?skillId={id}");
 
             // if (ValidateSession(response.StatusCode) == false)
             // {

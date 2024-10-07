@@ -54,7 +54,8 @@
                 <img src="@Model.ProfilePictureUrl" alt="Profile Picture" width="100" />
             </div>
             <div class="form-group">
-                <label asp-for="ProfilePictureUrl" class="control-label"></label>
+                <label asp-for="ProfilePictureUrl" class="control-label">Image</label>
+                @* aqui se configura el  input para subir un archivo *@
                 <input asp-for="ProfilePictureUrl" class="form-control" name="ProfilePictureUrl" type="file" />
                 <span asp-validation-for="ProfilePictureUrl" class="text-danger"></span>
             </div>

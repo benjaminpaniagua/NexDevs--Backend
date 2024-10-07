@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Edit</h1>
@@ -10,7 +11,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data" method="post">
             @if (TempData["Error"] != null)
             {
                 <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -62,8 +63,13 @@
                 <span asp-validation-for="Bio" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ProfilePictureUrl" class="control-label"></label>
-                <input asp-for="ProfilePictureUrl" class="form-control" type="file" accept="image/*" />
+                <label>Current Profile Picture</label>
+                <img src="@Model.ProfilePictureUrl" alt="Profile Picture" width="100" />
+            </div>
+            <div class="form-group">
+                <label asp-for="ProfilePictureUrl" class="control-label">Image</label>
+                @* aqui se configura el  input para subir un archivo *@
+                <input asp-for="ProfilePictureUrl" class="form-control" name="ProfilePictureUrl" type="file" />
                 <span asp-validation-for="ProfilePictureUrl" class="text-danger"></span>
             </div>
             <div class="form-group">
