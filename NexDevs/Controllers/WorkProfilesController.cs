@@ -1,47 +1,78 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using NexDevs.Context;
 using NexDevs.Models;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Net;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace NexDevs.Controllers
 {
     public class WorkProfilesController : Controller
     {
-        private readonly DbContextNetwork _context;
+        private NetworkAPI networkAPI;
+        private HttpClient client;
 
-        public WorkProfilesController(DbContextNetwork context)
+        public WorkProfilesController()
         {
-            _context = context;
+            networkAPI = new NetworkAPI();
+            client = networkAPI.Initial();
         }
 
 
         public async Task<IActionResult> Index(string search)
         {
-            var workProfiles = from workProfile in _context.WorkProfiles select workProfile;
+            List<WorkProfile> listWorkProfiles = new List<WorkProfile>();
+
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.GetAsync("WorkProfile/Listado");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+
+                listWorkProfiles = JsonConvert.DeserializeObject<List<WorkProfile>>(result);
+            }
 
             if (!string.IsNullOrEmpty(search))
             {
-                workProfiles = workProfiles.Where(workProfile => workProfile.Name.Contains(search));
+                listWorkProfiles = listWorkProfiles
+                                    .Where(workProfile => workProfile.Name.Contains(search))
+                                    .ToList();
             }
 
-            return View(await workProfiles.ToListAsync());
+            return View(listWorkProfiles);
+
         }
 
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var workProfile = await _context.WorkProfiles
-                .FirstOrDefaultAsync(m => m.WorkId == id);
+            var workProfile = new WorkProfile();
 
-            if (workProfile == null)
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (response.IsSuccessStatusCode)
             {
-                return NotFound();
+                var result = response.Content.ReadAsStringAsync().Result;
+
+                workProfile = JsonConvert.DeserializeObject<WorkProfile>(result);
             }
 
             return View(workProfile);
@@ -50,36 +81,178 @@ namespace NexDevs.Controllers
 
         public IActionResult Create()
         {
-            ViewBag.CategoryId = new SelectList(_context.WorkCategories, "CategoryId", "CategoryName");
             return View();
         }
 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("WorkId,Name,Email,Number,Password,Province,City,WorkDescription,ProfilePictureUrl,CategoryId,ProfileType")] WorkProfile workProfile)
+        public async Task<IActionResult> Create(WorkProfile workProfile, IFormFile profilePictureUrl)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(workProfile);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (profilePictureUrl != null && profilePictureUrl.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/workProfile");
+
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureUrl.FileName;
+
+                    uniqueFileName = uniqueFileName.Replace(" ", "_");
+
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await profilePictureUrl.CopyToAsync(fileStream);
+                    }
+
+                    workProfile.ProfilePictureUrl = "/images/workProfile/" + uniqueFileName;
+                }
+
+                workProfile.WorkId = 0;
+
+                if (profilePictureUrl == null)
+                {
+                    workProfile.ProfilePictureUrl = "ND";
+                }
+
+                //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+                var add = client.PostAsJsonAsync<WorkProfile>("WorkProfile/CrearCuenta", workProfile);
+                await add;
+
+                var result = add.Result;
+
+                // if (ValidateSession(response.StatusCode) == false)
+                // {
+                //     return RedirectToAction("Logout", "Users");
+                // }
+
+                if (result.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index", "WorkProfiles");
+                }
+                else
+                {
+                    TempData["Mensaje"] = "No se logró registrar el usuario";
+
+                    return View(workProfile);
+                }
             }
             return View(workProfile);
         }
 
 
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
+            var workProfile = new WorkProfile();
+
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage response = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (response.IsSuccessStatusCode)
             {
-                return NotFound();
+                var result = response.Content.ReadAsStringAsync().Result;
+
+                workProfile = JsonConvert.DeserializeObject<WorkProfile>(result);
+            }
+            return View(workProfile);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit([Bind] WorkProfile workProfile, IFormFile profilePictureUrl)
+        {
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            if (ModelState.IsValid)
+            {
+                if (profilePictureUrl != null && profilePictureUrl.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/workProfile");
+
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureUrl.FileName.Replace(" ", "_");
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await profilePictureUrl.CopyToAsync(fileStream);
+                    }
+
+                    workProfile.ProfilePictureUrl = "/images/workProfile/" + uniqueFileName;
+                }
+                else
+                {
+                    HttpResponseMessage response = await client.GetAsync($"WorkProfile/BuscarID?id={workProfile.WorkId}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var resultado = await response.Content.ReadAsStringAsync();
+                        var profileDtos = JsonConvert.DeserializeObject<WorkProfile>(resultado);
+                        workProfile.ProfilePictureUrl = profileDtos?.ProfilePictureUrl ?? workProfile.ProfilePictureUrl;
+                    }
+                }
+
+                workProfile.WorkId = 0;
+
+                var result = await client.PutAsJsonAsync<WorkProfile>("WorkProfile/Editar", workProfile);
+
+                // if (ValidateSession(response.StatusCode) == false)
+                // {
+                //     return RedirectToAction("Logout", "Users");
+                // }
+
+                if (result.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    TempData["Mensaje"] = "Datos incorrectos";
+
+                    return View(workProfile);
+                }
+
             }
 
-            var workProfile = await _context.WorkProfiles.FindAsync(id);
-            if (workProfile == null)
+            return View(workProfile);
+        }
+
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            var workProfile = new WorkProfile();
+
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+            HttpResponseMessage profile = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            if (profile.IsSuccessStatusCode)
             {
-                return NotFound();
+                var result = profile.Content.ReadAsStringAsync().Result;
+
+                workProfile = JsonConvert.DeserializeObject<WorkProfile>(result);
             }
 
             return View(workProfile);
@@ -88,70 +261,75 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("WorkId,Name,Email,Number,Password,Province,City,WorkDescription,ProfilePictureUrl,CategoryId,ProfileType")] WorkProfile workProfile)
+        [ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (id != workProfile.WorkId)
-            {
-                return NotFound();
-            }
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            if (ModelState.IsValid)
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
+
+            var workProfile = new WorkProfile();
+
+            HttpResponseMessage profile = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
+            
+            if (profile.IsSuccessStatusCode)
             {
-                try
+                var result = profile.Content.ReadAsStringAsync().Result;
+
+                workProfile = JsonConvert.DeserializeObject<WorkProfile>(result);
+
+                if (workProfile != null)
                 {
-                    _context.Update(workProfile);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!WorkProfileExists(workProfile.WorkId))
+                    HttpResponseMessage response = await client.DeleteAsync($"WorkProfile/Eliminar?email={workProfile.Email}");
+
+                    if (response.IsSuccessStatusCode)
                     {
-                        return NotFound();
+                        return RedirectToAction("Index");
                     }
                     else
                     {
-                        throw;
+                        TempData["Mensaje"] = "Error deleting the profile.";
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
-
-            return View(workProfile);
-        }
-
-
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
+            else
             {
-                return NotFound();
+                TempData["Mensaje"] = "Profile not found.";
             }
 
-            var workProfile = await _context.WorkProfiles
-                .FirstOrDefaultAsync(m => m.WorkId == id);
-            if (workProfile == null)
+            return RedirectToAction("Index");
+        }
+
+        private AuthenticationHeaderValue AutorizacionToken()
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            AuthenticationHeaderValue autorizacion = null;
+
+            if (token != null && token.Length != 0)
             {
-                return NotFound();
+                autorizacion = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            return View(workProfile);
+            return autorizacion;
         }
 
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        private bool ValidateSession(HttpStatusCode result)
         {
-            var workProfile = await _context.WorkProfiles.FindAsync(id);
-            _context.WorkProfiles.Remove(workProfile);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-
-        private bool WorkProfileExists(int id)
-        {
-            return _context.WorkProfiles.Any(e => e.WorkId == id);
+            //The token has expired so the session must be closed
+            if (result == HttpStatusCode.Unauthorized)
+            {
+                TempData["MensajeSesion"] = "Su sesion ha expirado o no es válida";
+                return false;
+            }
+            else
+            {
+                TempData["MensajeSesion"] = null;
+                return true;
+            }
         }
     }
 }
