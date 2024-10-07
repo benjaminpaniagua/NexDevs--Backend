@@ -243,12 +243,12 @@ namespace NexDevs.Controllers
         {
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
+            HttpResponseMessage response = await client.DeleteAsync($"Categories/Eliminar?categoryId={id}");
+           
             // if (ValidateSession(response.StatusCode) == false)
             // {
             //     return RedirectToAction("Logout", "Users");
             // }
-
-            HttpResponseMessage response = await client.DeleteAsync($"Categories/Eliminar?categoryId={id}");
 
             return RedirectToAction("Index");
         }
