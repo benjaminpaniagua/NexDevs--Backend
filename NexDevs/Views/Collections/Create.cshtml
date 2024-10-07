@@ -1,0 +1,39 @@
+@model NexDevs.Models.Collection
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Category</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" enctype="multipart/form-data" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="WorkId" class="control-label">Work Id</label>
+                <input asp-for="WorkId" class="form-control" />
+                <span asp-validation-for="WorkId" class="text-danger"></span>
+            </div>
+            <div>
+                <div class="form-group">
+                <label asp-for="CollectionImageUrl" class="control-label">Image</label>
+                @* aqui se configura el  input para subir un archivo *@
+                <input asp-for="CollectionImageUrl" class="form-control" name="CollectionImageUrl" type="file" />
+                <span asp-validation-for="CollectionImageUrl" class="text-danger"></span>
+            </div>
+            </div>
+            <div class="form-group d-flex justify-content-between align-items-center mt-3">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
