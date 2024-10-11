@@ -1,0 +1,51 @@
+﻿@model NexDevs.Models.User
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Login</h1>
+<div class="container">
+    <div class="row">
+
+        <div class="col-md-4"></div>
+
+        <div class="col-md-4">
+            <form asp-action="Login" id="FormLogin">
+
+                @*errors mesage*@
+                @if (TempData["Message"] != null)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
+                        <strong>@TempData["Message"]</strong>
+                    </div>
+                }
+
+                @*Se solicita el email*@
+                <div class="form-group">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control mt-1" placeholder="pedro.carvajal@gmail.com" type="email">
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                @*Se solicita el Password*@
+                <div class="form-group mt-3">
+                    <label asp-for="Password"></label>
+                    <input asp-for="Password" class="form-control" type="password" />
+                    <span asp-validation-for="Password" class="text-danger mt-1"></span>
+                    Don't have account? <a asp-controller="Users" asp-action="CreateAccount" class="text-decoration-underline a">Create account</a>
+                </div>
+
+                @*Boton que ejecuta el post del form*@
+                <div class="form-group mt-3">
+                    <input class="btn btn-primary" type="submit" value="Confirm" />
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4"></div>
+
+    </div>
+</div>
+

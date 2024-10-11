@@ -9,9 +9,11 @@ using System.Net.Http.Headers;
 using System.Net;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NexDevs.Controllers
 {
+    [Authorize]// protect routes
     public class WorkProfilesController : Controller
     {
         private NetworkAPI networkAPI;

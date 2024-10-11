@@ -14,10 +14,10 @@ builder.Services.AddControllersWithViews();
 //configuracion  autenticación por medio de cookies en la app web
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(config => {
     config.Cookie.Name = "CookieAuthentication";
-    config.LoginPath = "/Clientes/Login";
+    config.LoginPath = "/Users/Login";
     config.Cookie.HttpOnly = true;
     config.ExpireTimeSpan = TimeSpan.FromMinutes(10);
-    config.AccessDeniedPath = "/Clientes/AccessDenied";
+    config.AccessDeniedPath = "/Users/AccessDenied";
     config.SlidingExpiration = true;
 });
 

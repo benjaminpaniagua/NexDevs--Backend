@@ -3,9 +3,11 @@ using Newtonsoft.Json;
 using NexDevs.Models;
 using System.Net.Http.Headers;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NexDevs.Controllers
 {
+    [Authorize]// protect routes
     public class PostsController : Controller
     {
         private NetworkAPI networkAPI;

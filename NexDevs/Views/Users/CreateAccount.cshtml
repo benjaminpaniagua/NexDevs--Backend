@@ -1,0 +1,93 @@
+﻿@model NexDevs.Models.User
+@{
+    ViewData["Title"] = "CreateAccount";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>CreateAccount</h1>
+<div class="container">
+    <div class="row">
+
+        <div class="col-md-4"></div>
+
+        <div class="col-md-4">
+            <form asp-action="CreateAccount" id="FormLogin">
+                <h2>Create Account</h2>
+                @*errors message*@
+                @if (TempData["Message"] != null)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
+                        <strong>@TempData["Message"]</strong>
+                    </div>
+                }
+
+                <div class="form-group">
+                    <label asp-for="FirstName" class="form-label"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="LastName" class="form-label"></label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" type="email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm</label>
+                    <input name="confirm" class="form-control" type="password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Province" class="form-label"></label>
+                    <input asp-for="Province" class="form-control" />
+                    <span asp-validation-for="Province" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="City" class="form-label"></label>
+                    <input asp-for="City" class="form-control" />
+                    <span asp-validation-for="City" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Bio" class="form-label"></label>
+                    <input asp-for="Bio" class="form-control" />
+                    <span asp-validation-for="Bio" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ProfilePictureUrl" class="form-label"></label>
+                    <input asp-for="ProfilePictureUrl" class="form-control" />
+                    <span asp-validation-for="ProfilePictureUrl" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ProfileType" class="form-label"></label>
+                    <select asp-for="ProfileType" class="form-control">
+                        <option selected="selected" value="U">User</option>
+                        @*<option value="W">Work Profile</option>*@
+                    </select>
+                    <span asp-validation-for="ProfileType" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="Create Account" class="btn btn-primary mt-3" />
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4"></div>
+
+    </div>
+</div>

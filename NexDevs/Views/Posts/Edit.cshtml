@@ -6,7 +6,6 @@
 }
 
 <h1>Edit</h1>
-
 <h4>Post</h4>
 <hr />
 <div class="row">
@@ -30,17 +29,17 @@
             </div>
             <div class="form-group">
                 <label asp-for="CreateAt" class="control-label"></label>
-                <input asp-for="CreateAt" class="form-control" />
+                <input asp-for="CreateAt" class="form-control" readonly />
                 <span asp-validation-for="CreateAt" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="LikesCount" class="control-label"></label>
-                <input asp-for="LikesCount" class="form-control" />
+                <input asp-for="LikesCount" class="form-control" readonly/>
                 <span asp-validation-for="LikesCount" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="CommentsCount" class="control-label"></label>
-                <input asp-for="CommentsCount" class="form-control" />
+                <input asp-for="CommentsCount" class="form-control" readonly />
                 <span asp-validation-for="CommentsCount" class="text-danger"></span>
             </div>
             <div class="form-group">

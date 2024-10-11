@@ -5,21 +5,27 @@ using NexDevs.Context;
 using NexDevs.Models;
 using System.Net.Http.Headers;
 using System.Net;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NexDevs.Controllers
 {
+    
     public class UsersController : Controller
     {
 
         private NetworkAPI networkAPI;
         private HttpClient client;
-
-        public UsersController()
+        private readonly DbContextNetwork _context;
+        public UsersController(DbContextNetwork context)
         {
             networkAPI = new NetworkAPI();
             client = networkAPI.Initial();
+            _context = context;
         }
 
+        [Authorize]// protect routes
         public async Task<IActionResult> Index(string search)
         {
             List<User> listUsers = new List<User>();
@@ -51,6 +57,7 @@ namespace NexDevs.Controllers
         }
 
         [HttpGet]
+        [Authorize]// protect routes
         public IActionResult Create()
         {
             return View();
@@ -58,6 +65,7 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]// protect routes
         public async Task<IActionResult> Create([Bind] User user, IFormFile profilePictureUrl)
         {
             if (ModelState.IsValid)
@@ -129,6 +137,7 @@ namespace NexDevs.Controllers
         }
 
         [HttpGet]
+        [Authorize]// protect routes
         public async Task<IActionResult> Edit(string email)
         {
             var user = new User();
@@ -154,6 +163,7 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]// protect routes
         public async Task<IActionResult> Edit([Bind] User user, IFormFile profilePictureUrl)
         {
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
@@ -213,6 +223,7 @@ namespace NexDevs.Controllers
         }
 
         [HttpGet]
+        [Authorize]// protect routes
         public async Task<IActionResult> Delete(string email)
         {
             var user = new User();
@@ -239,6 +250,7 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]// protect routes
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(string email)
         {
@@ -255,6 +267,7 @@ namespace NexDevs.Controllers
         }
 
         [HttpGet]
+        [Authorize]// protect routes
         public async Task<IActionResult> Details(string email)
         {
             var user = new User();
@@ -304,6 +317,132 @@ namespace NexDevs.Controllers
             {
                 TempData["MensajeSesion"] = null;
                 return true;
+            }
+        }
+
+
+
+
+
+        public async Task<IActionResult> Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login([Bind] User temp)
+        {
+            User user = ValidateUser(temp);
+            if (user != null)
+            { //ask if the user is valid
+                var userClaims = new List<Claim>() { // se crea la instancia para la identidad del usuario
+                    new Claim(ClaimTypes.Name, temp.Email) }; //Claim es como la persona que esta reclamando la identidad, por ejemplo user email
+                var granIdentity = new ClaimsIdentity(userClaims, "User Identity"); // se crea el tipo de entidad
+
+                var userPrincipal = new ClaimsPrincipal(new[] { granIdentity }); // se instancia la entidad principal
+
+                await HttpContext.SignInAsync(userPrincipal); // se inicia la sesion
+
+                return RedirectToAction("Index", "Home"); // se redirige a la vista principal
+            }
+            else
+            {
+                //message in case of invalid user
+                TempData["Message"] = "Invalid User";
+                return View(temp); //return the view with the user data
+            }
+        }
+
+        private User ValidateUser(User temp)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Email.Equals(temp.Email));
+
+            User userAuth = null; //var to store the user to be authenticated
+
+            if (user != null)
+            {
+                //password validation
+                if (user.Password.Equals(temp.Password))
+                {
+                    userAuth = user; //store the user to be authenticated
+                }
+            }
+            return userAuth;
+        }
+
+        public async Task<IActionResult> LogOut()
+        {
+            await HttpContext.SignOutAsync(); //close the session
+            return RedirectToAction("Index", "Home"); //redirect to the main view
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateAccount()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAccount([Bind] User temp, string confirm)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Message"] = "Verify all Claims are correct"; // Mostrar mensaje de error
+
+                if (temp.FirstName == null)
+                {
+                    ModelState.AddModelError("FirstName", "FirstName is required");
+                }
+                if (temp.LastName == null)
+                {
+                    ModelState.AddModelError("LastName", "LastName is required");
+                }
+                if (temp.Email == null)
+                {
+                    ModelState.AddModelError("Email", "Email is required");
+                }
+                if (temp.Password == null)
+                {
+                    ModelState.AddModelError("Password", "Password is required");
+                }
+                if (temp.Province == null)
+                {
+                    ModelState.AddModelError("Province", "Province is required");
+                }
+                if (temp.City == null)
+                {
+                    ModelState.AddModelError("City", "City is required");
+                }
+                if (temp.Bio == null)
+                {
+                    ModelState.AddModelError("Bio", "Bio is required");
+                }
+                if (temp.ProfilePictureUrl == null)
+                {
+                    ModelState.AddModelError("ProfilePictureUrl", "ProfilePictureUrl is required");
+                }
+                if (temp.ProfileType == null)
+                {
+                    ModelState.AddModelError("ProfileType", "ProfileType is required");
+                }
+
+                return View(); // Devolver la vista si el modelo no es válido
+            }
+
+            if (temp.Password.Equals(confirm)) // Validar que la confirmación de la contraseña coincida con la contraseña
+            {
+                temp.Email = temp.Email.Replace(" ", ""); // Eliminar los espacios en blanco del correo electrónico
+                _context.Users.Add(temp); // Agregar el usuario a la base de datos
+                await _context.SaveChangesAsync(); // Guardar los cambios en la base de datos
+                return RedirectToAction("Login"); // Redirigir a la vista de inicio de sesión
+            }
+            else
+            {
+                TempData["Message"] = "Password and Confirm Password must be the same"; // Mostrar mensaje de error
+                ModelState.AddModelError("Password", "Password and Confirm Password must be the same"); // Agregar error al modelo
+                return View(); // Devolver la vista si la confirmación de la contraseña falla
             }
         }
     }
