@@ -76,6 +76,7 @@
                 <label asp-for="ProfileType" class="control-label"></label>
                 <select asp-for="ProfileType" class="form-control">
                     <option value="U" selected="selected">User</option>
+                    <option value="A">Admin</option>
                     @*<option value="W">Work Profile</option>*@
                 </select>
                 <span asp-validation-for="ProfileType" class="text-danger"></span>
