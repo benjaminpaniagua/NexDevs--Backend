@@ -4,49 +4,43 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Login</h1>
-<div class="container">
-    <div class="row">
+<h1 class="text-center mt-5">Login</h1>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Login" id="FormLogin">
+                        @*errors mesage*@
+                        @if (TempData["Message"] != null)
+                        {
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <strong>@TempData["Message"]</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
 
-        <div class="col-md-4"></div>
+                        @*Se solicita el email*@
+                        <div class="form-group mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" type="email" placeholder="Enter your email">
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
 
-        <div class="col-md-4">
-            <form asp-action="Login" id="FormLogin">
+                        @*Se solicita el Password*@
+                        <div class="form-group mb-3">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control" type="password" placeholder="Enter your password">
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
 
-                @*errors mesage*@
-                @if (TempData["Message"] != null)
-                {
-                    <div class="alert alert-warning" role="alert">
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
-                        <strong>@TempData["Message"]</strong>
-                    </div>
-                }
-
-                @*Se solicita el email*@
-                <div class="form-group">
-                    <label asp-for="Email"></label>
-                    <input asp-for="Email" class="form-control mt-1" placeholder="pedro.carvajal@gmail.com" type="email">
-                    <span asp-validation-for="Email" class="text-danger"></span>
+                        @*Boton que ejecuta el post del form*@
+                        <div class="d-grid">
+                            <button class="btn btn-primary btn-block" type="submit">Confirm</button>
+                        </div>
+                    </form>
                 </div>
-
-                @*Se solicita el Password*@
-                <div class="form-group mt-3">
-                    <label asp-for="Password"></label>
-                    <input asp-for="Password" class="form-control" type="password" />
-                    <span asp-validation-for="Password" class="text-danger mt-1"></span>
-                    Don't have account? <a asp-controller="Users" asp-action="CreateAccount" class="text-decoration-underline a">Create account</a>
-                </div>
-
-                @*Boton que ejecuta el post del form*@
-                <div class="form-group mt-3">
-                    <input class="btn btn-primary" type="submit" value="Confirm" />
-                </div>
-            </form>
+            </div>
         </div>
-
-        <div class="col-md-4"></div>
-
     </div>
 </div>
-
-

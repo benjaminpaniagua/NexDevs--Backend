@@ -72,8 +72,10 @@
                 <td class="text-center">
                     @Html.DisplayFor(modelItem => item.City)
                 </td>
-                <td class="text-center">
-                    @Html.DisplayFor(modelItem => item.Bio)
+                <td>
+                    @Html.Raw(item.Bio.Length > 40
+                             ? item.Bio.Substring(0, 40) + "..."
+                             : item.Bio)
                 </td>
                 <td class="text-center">
                     @Html.DisplayFor(modelItem => item.ProfilePictureUrl)
@@ -93,7 +95,7 @@
                     @profileType
                 </td>
                 <td class="text-center">
-                    <div class ="btn-group">
+                    <div class="btn-group">
                         @Html.ActionLink("Edit", "Edit", new { email = item.Email }, new { @class = "btn btn-outline-dark btn-sm" })
                         @Html.ActionLink("Details", "Details", new { email = item.Email }, new { @class = "btn btn-outline-dark btn-sm" })
                         @Html.ActionLink("Delete", "Delete", new { email = item.Email }, new { @class = "btn btn-outline-dark btn-sm" })
