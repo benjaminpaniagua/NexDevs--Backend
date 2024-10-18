@@ -4,6 +4,8 @@ using NexDevs.Models;
 using System.Net.Http.Headers;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using System.Text;
+using System.Net.Http.Headers;
 
 namespace NexDevs.Controllers
 {
@@ -126,66 +128,45 @@ namespace NexDevs.Controllers
         {
             if (ModelState.IsValid)
             {
-                //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
-                if (postImageUrl != null && postImageUrl.Length > 0)
-                {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/posts");
-
-                    if (!Directory.Exists(uploadsFolder))
-                    {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + postImageUrl.FileName;
-
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await postImageUrl.CopyToAsync(fileStream);
-                    }
-
-                    post.PostImageUrl = "/images/posts/" + uniqueFileName;
-                }
-
-                post.PostId = 0;
+                // Asignar valores predeterminados al post
+                post.PostId = 0; // Este valor puede ser asignado por la base de datos
                 post.Approved = 0;
                 post.CommentsCount = 0;
                 post.LikesCount = 0;
-                post.CreateAt = DateTime.Now;
+                post.CreateAt = DateTime.UtcNow;
 
-                if (postImageUrl == null)
+                using (var content = new MultipartFormDataContent())
                 {
-                    post.PostImageUrl = "ND";
-                }
+                    // Agregar el objeto Post al contenido
+                    content.Add(new StringContent(post.WorkId.ToString()), "WorkId");
+                    content.Add(new StringContent(post.ContentPost ?? ""), "ContentPost");
 
+                    // Validar si hay imagen y agregarla al contenido
+                    if (postImageUrl != null && postImageUrl.Length > 0)
+                    {
+                        var imageContent = new StreamContent(postImageUrl.OpenReadStream());
+                        imageContent.Headers.ContentType = new MediaTypeHeaderValue(postImageUrl.ContentType);
+                        content.Add(imageContent, "photo", postImageUrl.FileName); // Nombre debe coincidir con el que espera la API
+                    }
 
+                    // Hacer la solicitud POST al endpoint Agregar
+                    var response = await client.PostAsync("Posts/Agregar", content);
 
-                var add = client.PostAsJsonAsync<Post>("Posts/Agregar", post);
-                await add;
-                var result = add.Result;
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index", "Posts");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "No se logró registrar el post";
-
-                    return View(post);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return RedirectToAction("Index", "Posts");
+                    }
+                    else
+                    {
+                        var responseContent = await response.Content.ReadAsStringAsync();
+                        TempData["Mensaje"] = $"Error: {responseContent}"; // Capturar errores
+                        return View(post);
+                    }
                 }
             }
             return View(post);
         }
+
 
         public async Task<IActionResult> Edit(int id)
         {

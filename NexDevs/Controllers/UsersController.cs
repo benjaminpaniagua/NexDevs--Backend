@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace NexDevs.Controllers
 {
-    
+
     public class UsersController : Controller
     {
 
@@ -65,74 +65,45 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]// protect routes
-        public async Task<IActionResult> Create([Bind] User user, IFormFile profilePictureUrl)
+        [Authorize] // Protege las rutas si es necesario
+        public async Task<IActionResult> Create([Bind] UserImage user, IFormFile profilePictureUrl)
         {
             if (ModelState.IsValid)
             {
-                // Verifica si se ha subido una imagen
-                if (profilePictureUrl != null && profilePictureUrl.Length > 0)
-                {
-                    // Define el directorio donde se guarda la imagen
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/users");
-
-                    // Verifica que el directorio exita y si no se crea
-                    if (!Directory.Exists(uploadsFolder))
-                    {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-
-                    // Se genera un nombre único para la imagen
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureUrl.FileName;
-
-                    //Se quitan los espacios en blanco dentro del nombre de la imagen si tiene
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-                    //Se indica la ruta fisca donde se almacena la foto
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    // Guarda la imagen en la carpeta del servidor
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        //se copia la imagen en nuestra app
-                        await profilePictureUrl.CopyToAsync(fileStream);
-                    }
-
-                    // Se asigna la URL de la imagen de user
-                    user.ProfilePictureUrl = "/images/users/" + uniqueFileName;
-                }
-                //se asigna 0 a la id para que no de problemas 
                 user.UserId = 0;
+                user.Salt = "salt";
 
-                //En caso de que la imagen venga vacia le decimos que ponga N/D
-                if (profilePictureUrl == null)
+                if (profilePictureUrl != null)
                 {
-                    user.ProfilePictureUrl = "N/D";
-                }
-
-                //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
-                var add = client.PostAsJsonAsync<User>("/Users/CrearCuenta", user);
-                await add;
-
-                var result = add.Result;
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index", "Users");
+                    user.ProfilePictureUrl = profilePictureUrl;
                 }
                 else
                 {
-                    TempData["Mensaje"] = "No se logró registrar el usuario";
+                    user.ProfilePictureUrl = null;
+                }
+                
 
+                try
+                {
+                    var add = await client.PostAsJsonAsync("/Users/CrearCuenta", user);
+                    
+                    if (add.IsSuccessStatusCode)
+                    {
+                        return RedirectToAction("Index", "Users");
+                    }
+                    else
+                    {
+                        TempData["Mensaje"] = "No se logró registrar el usuario";
+                        return View(user);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["Mensaje"] = "Ocurrió un error: " + ex.Message;
                     return View(user);
                 }
             }
+
             return View(user);
         }
 
@@ -321,10 +292,8 @@ namespace NexDevs.Controllers
         }
 
 
-
-
-
-        public async Task<IActionResult> Login()
+        // ***  INICIO DE SESIÓN  ***
+        public IActionResult Login()
         {
             return View();
         }
@@ -333,17 +302,25 @@ namespace NexDevs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login([Bind] User temp)
         {
-            User user = ValidateUser(temp);
+            if (!ModelState.IsValid) // Verifica si el modelo es válido
+            {
+                return View(temp); // Devuelve la vista con errores
+            }
+
+            User user = ValidateUser(temp); // Valida el usuario
+
             if (user != null)
-            { //ask if the user is valid
-                var userClaims = new List<Claim>() { // se crea la instancia para la identidad del usuario
-                    new Claim(ClaimTypes.Name, temp.Email) }; //Claim es como la persona que esta reclamando la identidad, por ejemplo user email
-                var granIdentity = new ClaimsIdentity(userClaims, "User Identity"); // se crea el tipo de entidad
+            {
+                var userClaims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, temp.Email), // Puedes agregar más claims si es necesario
+            new Claim(ClaimTypes.NameIdentifier, temp.UserId.ToString()) // Agregar ID de usuario
+        };
 
-                var userPrincipal = new ClaimsPrincipal(new[] { granIdentity }); // se instancia la entidad principal
+                var granIdentity = new ClaimsIdentity(userClaims, "User Identity");
+                var userPrincipal = new ClaimsPrincipal(granIdentity);
 
-                await HttpContext.SignInAsync(userPrincipal); // se inicia la sesion
-
+                await HttpContext.SignInAsync(userPrincipal); // Inicia sesión
                 return RedirectToAction("Index", "Home"); // se redirige a la vista principal
             }
             else
@@ -378,7 +355,7 @@ namespace NexDevs.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CreateAccount()
+        public IActionResult CreateAccount()
         {
             return View();
         }

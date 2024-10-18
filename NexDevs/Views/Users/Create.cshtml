@@ -1,4 +1,4 @@
-﻿@model NexDevs.Models.User
+﻿@model NexDevs.Models.UserImage
 
 @{
     ViewData["Title"] = "Create";
@@ -49,7 +49,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="ProfilePictureUrl" class="control-label"></label>
-                <input asp-for="ProfilePictureUrl" class="form-control" type="file" accept="image/*" />
+                <input asp-for="ProfilePictureUrl" class="form-control" name="ProfilePictureUrl" type="File"/>
                 <span asp-validation-for="ProfilePictureUrl" class="text-danger"></span>
             </div>
             <div class="form-group">
