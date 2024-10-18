@@ -70,24 +70,32 @@ namespace NexDevs.Controllers
         {
             if (ModelState.IsValid)
             {
-                user.UserId = 0;
                 user.Salt = "salt";
 
-                if (profilePictureUrl != null)
+                using (var content = new MultipartFormDataContent())
                 {
-                    user.ProfilePictureUrl = profilePictureUrl;
-                }
-                else
-                {
-                    user.ProfilePictureUrl = null;
-                }
-                
+                    // Añade los campos de texto
+                    content.Add(new StringContent(user.FirstName), "FirstName");
+                    content.Add(new StringContent(user.LastName), "LastName");
+                    content.Add(new StringContent(user.Email), "Email");
+                    content.Add(new StringContent(user.Password), "Password");
+                    content.Add(new StringContent(user.Province), "Province");
+                    content.Add(new StringContent(user.City), "City");
+                    content.Add(new StringContent(user.Bio), "Bio");
+                    content.Add(new StringContent(user.ProfileType.ToString()), "ProfileType");
+                    content.Add(new StringContent(user.Salt), "Salt");
 
-                try
-                {
-                    var add = await client.PostAsJsonAsync("/Users/CrearCuenta", user);
-                    
-                    if (add.IsSuccessStatusCode)
+                    // Añade el archivo si no es nulo
+                    if (profilePictureUrl != null)
+                    {
+                        var fileStreamContent = new StreamContent(profilePictureUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
+                        content.Add(fileStreamContent, "ProfilePictureUrl", profilePictureUrl.FileName);
+                    }
+
+                    var response = await client.PostAsync("Users/CrearCuenta", content);
+
+                    if (response.IsSuccessStatusCode)
                     {
                         return RedirectToAction("Index", "Users");
                     }
@@ -97,13 +105,7 @@ namespace NexDevs.Controllers
                         return View(user);
                     }
                 }
-                catch (Exception ex)
-                {
-                    TempData["Mensaje"] = "Ocurrió un error: " + ex.Message;
-                    return View(user);
-                }
             }
-
             return View(user);
         }
 
