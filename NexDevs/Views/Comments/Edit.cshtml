@@ -1,0 +1,51 @@
+﻿@model NexDevs.Models.Comment
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Comment</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="CommentId" />
+            <div class="form-group">
+                <label asp-for="PostId" class="control-label"></label>
+                <input asp-for="PostId" class="form-control" />
+                <span asp-validation-for="PostId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserId" class="control-label"></label>
+                <input asp-for="UserId" class="form-control" />
+                <span asp-validation-for="UserId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WorkId" class="control-label"></label>
+                <input asp-for="WorkId" class="form-control" />
+                <span asp-validation-for="WorkId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ContentComment" class="control-label"></label>
+                <input asp-for="ContentComment" class="form-control" />
+                <span asp-validation-for="ContentComment" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreateAt" class="control-label"></label>
+                <input asp-for="CreateAt" class="form-control" />
+                <span asp-validation-for="CreateAt" class="text-danger"></span>
+            </div>
+            <div class="form-group d-flex justify-content-between align-items-center mt-3">
+                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
