@@ -1,8 +1,12 @@
-using NexDevs.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using NexDevs.Context;
+using NexDevs.Models;
 using System.Net.Http.Headers;
 using System.Net;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 
 namespace NexDevs.Controllers
@@ -12,11 +16,13 @@ namespace NexDevs.Controllers
     {
         private NetworkAPI networkAPI;
         private HttpClient client;
+        private readonly DbContextNetwork _context;
 
-        public CollectionsController()
+        public CollectionsController(DbContextNetwork context)
         {
             networkAPI = new NetworkAPI();
             client = networkAPI.Initial();
+            _context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -50,65 +56,41 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind] Collection collection, IFormFile collectionImageUrl)
+        [Authorize] // Protege las rutas si es necesario
+        public async Task<IActionResult> Create([Bind] CollectionImage collection, IFormFile collectionImageUrl)
         {
             if (ModelState.IsValid)
             {
-                if (collectionImageUrl != null && collectionImageUrl.Length > 0)
+                using (var content = new MultipartFormDataContent())
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/collections");
+                    // Añade los campos de texto
+                    content.Add(new StringContent(collection.WorkId.ToString()), "WorkId");
 
-                    if (!Directory.Exists(uploadsFolder))
+                    // Añade el archivo si no es nulo
+                    if (collectionImageUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(collectionImageUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue(collectionImageUrl.ContentType); // Ajusta el tipo de contenido según sea necesario
+                        content.Add(fileStreamContent, "CollectionImageUrl", collectionImageUrl.FileName);
                     }
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + collectionImageUrl.FileName;
+                    var response = await client.PostAsync("Collections/Agregar", content);
 
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (response.IsSuccessStatusCode)
                     {
-                        await collectionImageUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index", "Collections");
                     }
-
-                    collection.CollectionImageUrl = "/images/collections/" + uniqueFileName;
-                }
-
-                collection.CollectionId = 0;
-
-                if (collectionImageUrl == null)
-                {
-                    collection.CollectionImageUrl = "ND";
-                }
-
-                //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
-                var add = client.PostAsJsonAsync<Collection>("Collections/Agregar", collection);
-                await add;
-
-                var result = add.Result;
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index", "Collections");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "No se logró registrar los datos";
-
-                    return View(collection);
+                    else
+                    {
+                        TempData["Mensaje"] = "No se logró registrar la colección";
+                        return View(collection);
+                    }
                 }
             }
             return View(collection);
         }
+
+
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)

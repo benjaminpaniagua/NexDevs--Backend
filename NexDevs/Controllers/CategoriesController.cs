@@ -1,8 +1,12 @@
-using NexDevs.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using NexDevs.Context;
+using NexDevs.Models;
 using System.Net.Http.Headers;
 using System.Net;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 
 namespace NexDevs.Controllers
@@ -12,11 +16,13 @@ namespace NexDevs.Controllers
     {
         private NetworkAPI networkAPI;
         private HttpClient client;
+        private readonly DbContextNetwork _context;
 
-        public CategoriesController()
+        public CategoriesController(DbContextNetwork context)
         {
             networkAPI = new NetworkAPI();
             client = networkAPI.Initial();
+            _context = context;
         }
 
         public async Task<IActionResult> Index(string search)
@@ -57,75 +63,41 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind] Category category, IFormFile categoryImageUrl)
+        [Authorize] // Protege las rutas si es necesario
+        public async Task<IActionResult> Create([Bind] CategoryImage category, IFormFile categoryImageUrl)
         {
             if (ModelState.IsValid)
             {
-                // Verifica si se ha subido una imagen
-                if (categoryImageUrl != null && categoryImageUrl.Length > 0)
-                {
-                    // Define el directorio donde se guarda la imagen
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/categories");
 
-                    // Verifica que el directorio exita y si no se crea
-                    if (!Directory.Exists(uploadsFolder))
+                using (var content = new MultipartFormDataContent())
+                {
+                    // Añade los campos de texto
+                    content.Add(new StringContent(category.CategoryName), "CategoryName");
+
+                    // Añade el archivo si no es nulo
+                    if (categoryImageUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(categoryImageUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
+                        content.Add(fileStreamContent, "CategoryImageUrl", categoryImageUrl.FileName);
                     }
 
-                    // Se genera un nombre único para la imagen
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + categoryImageUrl.FileName;
+                    var response = await client.PostAsync("Categories/Agregar", content);
 
-                    //Se quitan los espacios en blanco dentro del nombre de la imagen si tiene
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-                    //Se indica la ruta fisca donde se almacena la foto
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    // Guarda la imagen en la carpeta del servidor
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (response.IsSuccessStatusCode)
                     {
-                        //se copia la imagen en nuestra app
-                        await categoryImageUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index", "Categories");
                     }
-
-                    // Se asigna la URL de la imagen de category
-                    category.CategoryImageUrl = "/images/categories/" + uniqueFileName;
-                }
-                //se asigna 0 a la id para que no de problemas 
-                category.CategoryId = 0;
-
-                //En caso de que la imagen venga vacia le decimos que ponga N/D
-                if (categoryImageUrl == null)
-                {
-                    category.CategoryImageUrl = "N/D";
-                }
-
-                //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
-                var add = client.PostAsJsonAsync<Category>("Categories/Agregar", category);
-                await add;
-
-                var result = add.Result;
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index", "Categories");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "No se logró registrar la categoria";
-
-                    return View(category);
+                    else
+                    {
+                        TempData["Mensaje"] = "No se logró registrar la categoria";
+                        return View(category);
+                    }
                 }
             }
             return View(category);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)

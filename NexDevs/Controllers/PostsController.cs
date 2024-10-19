@@ -6,6 +6,7 @@ using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using System.Net.Http.Headers;
+using Microsoft.Extensions.Hosting;
 
 namespace NexDevs.Controllers
 {
@@ -124,7 +125,8 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind] Post post, IFormFile postImageUrl)
+        [Authorize] // Protege las rutas si es necesario
+        public async Task<IActionResult> Create([Bind] PostImage post, IFormFile postImageUrl)
         {
             if (ModelState.IsValid)
             {
@@ -137,19 +139,17 @@ namespace NexDevs.Controllers
 
                 using (var content = new MultipartFormDataContent())
                 {
-                    // Agregar el objeto Post al contenido
                     content.Add(new StringContent(post.WorkId.ToString()), "WorkId");
                     content.Add(new StringContent(post.ContentPost ?? ""), "ContentPost");
 
-                    // Validar si hay imagen y agregarla al contenido
-                    if (postImageUrl != null && postImageUrl.Length > 0)
+                    // Añade el archivo si no es nulo
+                    if (postImageUrl != null)
                     {
-                        var imageContent = new StreamContent(postImageUrl.OpenReadStream());
-                        imageContent.Headers.ContentType = new MediaTypeHeaderValue(postImageUrl.ContentType);
-                        content.Add(imageContent, "photo", postImageUrl.FileName); // Nombre debe coincidir con el que espera la API
+                        var fileStreamContent = new StreamContent(postImageUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
+                        content.Add(fileStreamContent, "PostImageUrl", postImageUrl.FileName);
                     }
 
-                    // Hacer la solicitud POST al endpoint Agregar
                     var response = await client.PostAsync("Posts/Agregar", content);
 
                     if (response.IsSuccessStatusCode)
@@ -166,7 +166,6 @@ namespace NexDevs.Controllers
             }
             return View(post);
         }
-
 
         public async Task<IActionResult> Edit(int id)
         {

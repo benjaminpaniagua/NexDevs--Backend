@@ -10,6 +10,7 @@ using System.Net;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Hosting;
 
 namespace NexDevs.Controllers
 {
@@ -86,69 +87,52 @@ namespace NexDevs.Controllers
             return View();
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(WorkProfile workProfile, IFormFile profilePictureUrl)
+        [Authorize] // Protege las rutas si es necesario
+        public async Task<IActionResult> Create([Bind] WorkProfileImage workProfile, IFormFile profilePictureUrl)
         {
             if (ModelState.IsValid)
             {
-                if (profilePictureUrl != null && profilePictureUrl.Length > 0)
-                {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/workProfile");
 
-                    if (!Directory.Exists(uploadsFolder))
+                using (var content = new MultipartFormDataContent())
+                {
+                    // Añade los campos de texto
+                    content.Add(new StringContent(workProfile.Name), "Name");
+                    content.Add(new StringContent(workProfile.Email), "Email");
+                    content.Add(new StringContent(workProfile.Number), "Number");
+                    content.Add(new StringContent(workProfile.Password), "Password");
+                    content.Add(new StringContent(workProfile.Province), "Province");
+                    content.Add(new StringContent(workProfile.City), "City");
+                    content.Add(new StringContent(workProfile.WorkDescription), "WorkDescription");
+                    content.Add(new StringContent(workProfile.ProfileType.ToString()), "ProfileType");
+
+                    // Añade el archivo si no es nulo
+                    if (profilePictureUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(profilePictureUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
+                        content.Add(fileStreamContent, "ProfilePictureUrl", profilePictureUrl.FileName);
                     }
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureUrl.FileName;
+                    var response = await client.PostAsync("WorkProfile/CrearCuenta", content);
 
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (response.IsSuccessStatusCode)
                     {
-                        await profilePictureUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index", "WorkProfiles");
                     }
-
-                    workProfile.ProfilePictureUrl = "/images/workProfile/" + uniqueFileName;
-                }
-
-                workProfile.WorkId = 0;
-
-                if (profilePictureUrl == null)
-                {
-                    workProfile.ProfilePictureUrl = "ND";
-                }
-
-                //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
-                var add = client.PostAsJsonAsync<WorkProfile>("WorkProfile/CrearCuenta", workProfile);
-                await add;
-
-                var result = add.Result;
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index", "WorkProfiles");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "No se logró registrar el usuario";
-
-                    return View(workProfile);
+                    else
+                    {
+                        TempData["Mensaje"] = "No se logró registrar el WorkProfile";
+                        return View(workProfile);
+                    }
                 }
             }
             return View(workProfile);
         }
 
+
+        
 
         public async Task<IActionResult> Edit(int id)
         {
