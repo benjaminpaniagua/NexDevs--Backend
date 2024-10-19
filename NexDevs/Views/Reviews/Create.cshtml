@@ -1,23 +1,18 @@
-﻿@model NexDevs.Models.Comment
+﻿@model NexDevs.Models.Review
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Edit</h1>
+<h1>Create</h1>
 
-<h4>Comment</h4>
+<h4>Review</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="CommentId" />
-            <div class="form-group">
-                <label asp-for="PostId" class="control-label"></label>
-                <input asp-for="PostId" class="form-control" />
-                <span asp-validation-for="PostId" class="text-danger"></span>
-            </div>
             <div class="form-group">
                 <label asp-for="UserId" class="control-label"></label>
                 <input asp-for="UserId" class="form-control" />
@@ -29,9 +24,9 @@
                 <span asp-validation-for="WorkId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ContentComment" class="control-label"></label>
-                <input asp-for="ContentComment" class="form-control" />
-                <span asp-validation-for="ContentComment" class="text-danger"></span>
+                <label asp-for="ReviewComment" class="control-label"></label>
+                <input asp-for="ReviewComment" class="form-control" />
+                <span asp-validation-for="ReviewComment" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="CreateAt" class="control-label"></label>
@@ -39,7 +34,7 @@
                 <span asp-validation-for="CreateAt" class="text-danger"></span>
             </div>
             <div class="form-group d-flex justify-content-between align-items-center mt-3">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Create" class="btn btn-primary" />
                 <a asp-action="Index" class="btn btn-outline-dark">Back to List</a>
             </div>
         </form>

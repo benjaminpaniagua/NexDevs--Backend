@@ -1,23 +1,19 @@
-﻿@model NexDevs.Models.Comment
+﻿@model NexDevs.Models.Review
 
 @{
     ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Edit</h1>
 
-<h4>Comment</h4>
+<h4>Review</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="CommentId" />
-            <div class="form-group">
-                <label asp-for="PostId" class="control-label"></label>
-                <input asp-for="PostId" class="form-control" />
-                <span asp-validation-for="PostId" class="text-danger"></span>
-            </div>
+            <input type="hidden" asp-for="ReviewId" />
             <div class="form-group">
                 <label asp-for="UserId" class="control-label"></label>
                 <input asp-for="UserId" class="form-control" />
@@ -29,9 +25,9 @@
                 <span asp-validation-for="WorkId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ContentComment" class="control-label"></label>
-                <input asp-for="ContentComment" class="form-control" />
-                <span asp-validation-for="ContentComment" class="text-danger"></span>
+                <label asp-for="ReviewComment" class="control-label"></label>
+                <input asp-for="ReviewComment" class="form-control" />
+                <span asp-validation-for="ReviewComment" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="CreateAt" class="control-label"></label>
