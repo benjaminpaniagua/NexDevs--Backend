@@ -1,0 +1,65 @@
+﻿@model IEnumerable<NexDevs.Models.Comment>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center my-3">
+    <p class="m-0">
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    </p>
+    <form asp-controller="Comments" asp-action="Index" method="get">
+        <div class="d-flex gap-3">
+            <input type="text" class="form-control" name="search" placeholder="Search comment" id="inputDefault">
+            <input type="submit" value="Search" class="btn btn-dark" />
+        </div>
+    </form>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.PostId)
+            </th>
+            <th>@Html.DisplayNameFor(model => model.UserId)</th>
+            <th>@Html.DisplayNameFor(model => model.WorkId)</th>
+            <th>@Html.DisplayNameFor(model => model.ContentComment)</th>
+            <th>@Html.DisplayNameFor(model => model.CreateAt)</th>
+            <th>@Html.DisplayNameFor(model => model.LikesCount)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PostId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.WorkId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ContentComment)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreateAt)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LikesCount)
+                </td>
+                <td class="text-center">
+                    <div class="btn-group">
+                        @Html.ActionLink("Edit", "Edit", new { id = item.CommentId }, new { @class = "btn btn-outline-dark btn-sm" })
+                        @Html.ActionLink("Details", "Details", new { id = item.CommentId }, new { @class = "btn btn-outline-dark btn-sm" })
+                        @Html.ActionLink("Delete", "Delete", new { id = item.CommentId }, new { @class = "btn btn-outline-dark btn-sm" })
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
