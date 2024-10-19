@@ -1,37 +1,44 @@
-@model NexDevs.Models.Category
+﻿@model NexDevs.Models.Review
 
 @{
     ViewData["Title"] = "Delete";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Delete</h1>
 
 <h3>Are you sure you want to delete this?</h3>
 <div>
-    <h4>Category</h4>
+    <h4>Review</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CategoryName)
+            @Html.DisplayNameFor(model => model.UserId)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CategoryName)
+            @Html.DisplayFor(model => model.UserId)
         </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.WorkId)
+        </dt>
         <dd class = "col-sm-10">
-           @* Se verifica primero si hay una URL de imagen disponible *@
-            @if (!string.IsNullOrEmpty(Model.CategoryImageUrl))
-            {
-                <img src="@Model.CategoryImageUrl" alt="Category Image" class="img-fluid" style="max-width: 200px;" />
-            }
-            else
-            {
-                <p>No image available</p>
-            }
+            @Html.DisplayFor(model => model.WorkId)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.ReviewComment)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ReviewComment)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CreateAt)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CreateAt)
         </dd>
     </dl>
-    
     <form asp-action="Delete">
-        <input type="hidden" asp-for="CategoryId    " />
+        <input type="hidden" asp-for="ReviewId" />
         <div class="d-flex align-items-center gap-3">
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
                 Delete
@@ -43,11 +50,11 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Delete Category</h5>
+                        <h5 class="modal-title" id="exampleModalLabel">Delete Review</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        Do you want delete @Model.CategoryName?
+                        Do you want delete?
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

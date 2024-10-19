@@ -1,0 +1,65 @@
+﻿@model IEnumerable<NexDevs.Models.Review>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center my-3">
+    <p class="m-0">
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    </p>
+
+    <form asp-controller="Reviews" asp-action="Index" method="get">
+        <div class="d-flex gap-3">
+            <input type="text" class="form-control" name="search" placeholder="Search review" id="inputDefault">
+            <input type="submit" value="Search" class="btn btn-dark" />
+        </div>
+    </form>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.UserId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReviewComment)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreateAt)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.WorkId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ReviewComment)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreateAt)
+                </td>
+                <td class="text-center">
+                    <div class="btn-group">
+                        <a asp-action="Edit" asp-route-id="@item.ReviewId" class="btn btn-outline-dark btn-sm">Edit</a> 
+                        <a asp-action="Details" asp-route-id="@item.ReviewId" class="btn btn-outline-dark btn-sm">Details</a> 
+                        <a asp-action="Delete" asp-route-id="@item.ReviewId" class="btn btn-outline-dark btn-sm">Delete</a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
