@@ -24,6 +24,8 @@ namespace NexDevs.Models
 
         public IFormFile ProfilePictureUrl { get; set; }
 
+        public string ImageUrl { get; set; }
+
         public char ProfileType { get; set; }
         
         public string Salt { get; set; }
