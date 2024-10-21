@@ -184,6 +184,7 @@ namespace NexDevs.Controllers
                 using (var content = new MultipartFormDataContent())
                 {
                     // Añade los campos de texto
+                    content.Add(new StringContent(workProfile.WorkId.ToString()), "WorkId");
                     content.Add(new StringContent(workProfile.Name), "Name");
                     content.Add(new StringContent(workProfile.Email), "Email");
                     content.Add(new StringContent(workProfile.Number), "Number");
