@@ -116,70 +116,59 @@ namespace NexDevs.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var result = response.Content.ReadAsStringAsync().Result;
-
                 category = JsonConvert.DeserializeObject<Category>(result);
-            }
 
-            return View(category);
+                var categoryImageUrl = new CategoryImage 
+                {
+                    CategoryId = category.CategoryId,
+                    CategoryName = category.CategoryName,
+                    ImageUrl=category.CategoryImageUrl
+                };
+                return View(categoryImageUrl);
+            }
+            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind] Category category, IFormFile categoryImageUrl)
+        public async Task<IActionResult> Edit([Bind] CategoryImage category, IFormFile categoryImageUrl)
         {
 
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             if (ModelState.IsValid)
             {
-                if (categoryImageUrl != null && categoryImageUrl.Length > 0)
+                using (var content = new MultipartFormDataContent())
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/categories");
+                    // Añade los campos de texto
+                    content.Add(new StringContent(category.CategoryId.ToString()), "CategoryId");
+                    content.Add(new StringContent(category.CategoryName), "CategoryName");
 
-                    if (!Directory.Exists(uploadsFolder))
+                    // Añade el archivo si no es nulo
+                    if (categoryImageUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
+                        var fileStreamContent = new StreamContent(categoryImageUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
+                        content.Add(fileStreamContent, "CategoryImageUrl", categoryImageUrl.FileName);
+                    } 
+                    
+                    var result = await client.PutAsync("Categories/Editar", content);
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + categoryImageUrl.FileName;
+                    // if (ValidateSession(response.StatusCode) == false)
+                    // {
+                    //     return RedirectToAction("Logout", "Users");
+                    // }
 
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (result.IsSuccessStatusCode)
                     {
-                        await categoryImageUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index");
                     }
+                    else
+                    {
+                        TempData["Mensaje"] = "Datos incorrectos";
 
-                    category.CategoryImageUrl = "/images/categories/" + uniqueFileName;
-                }
-
-                //Verificamos si el campo de la imagen viene vacio y de asignamos la misma imagen que tenía para que no de problemas
-                if (categoryImageUrl == null)
-                {
-                    HttpResponseMessage response = await client.GetAsync($"Categories/Consultar?categoryId={category.CategoryId}");
-                    var resultado = response.Content.ReadAsStringAsync().Result;
-                    var categoryDtos = JsonConvert.DeserializeObject<Category>(resultado);
-                    category.CategoryImageUrl = categoryDtos.CategoryImageUrl;
-                }
-
-                var result = await client.PutAsJsonAsync<Category>("Categories/Editar", category);
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "Datos incorrectos";
-
-                    return View(category);
+                        return View(category);
+                    }
                 }
             }
             return View(category);
