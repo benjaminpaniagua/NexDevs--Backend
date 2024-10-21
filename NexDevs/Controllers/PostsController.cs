@@ -141,6 +141,7 @@ namespace NexDevs.Controllers
                 {
                     content.Add(new StringContent(post.WorkId.ToString()), "WorkId");
                     content.Add(new StringContent(post.ContentPost ?? ""), "ContentPost");
+                    content.Add(new StringContent(post.PaymentReceipt.ToString()), "PaymentReceipt");
 
                     // Añade el archivo si no es nulo
                     if (postImageUrl != null)
@@ -191,6 +192,7 @@ namespace NexDevs.Controllers
                     PostId = post.PostId,
                     WorkId = post.WorkId,
                     ContentPost = post.ContentPost,
+                    PaymentReceipt = post.PaymentReceipt,
                     ImageUrl = post.PostImageUrl,
                     CreateAt = post.CreateAt,
                     LikesCount = post.LikesCount,
@@ -215,6 +217,7 @@ namespace NexDevs.Controllers
                     content.Add(new StringContent(post.PostId.ToString()), "PostId");
                     content.Add(new StringContent(post.WorkId.ToString()), "WorkId");
                     content.Add(new StringContent(post.ContentPost), "ContentPost");
+                    content.Add(new StringContent(post.PaymentReceipt.ToString()), "PaymentReceipt");
                     content.Add(new StringContent(post.CreateAt.ToString()), "CreateAt");
                     content.Add(new StringContent(post.LikesCount.ToString()), "LikesCount");
                     content.Add(new StringContent(post.CommentsCount.ToString()), "CommentsCount");

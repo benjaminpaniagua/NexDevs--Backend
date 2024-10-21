@@ -10,6 +10,7 @@ namespace NexDevs.Models
         public int WorkId { get; set; }
 
         public string ContentPost { get; set; }
+        public int PaymentReceipt { get; set; }
 
         public IFormFile PostImageUrl { get; set; }
         public string ImageUrl { get; set; }

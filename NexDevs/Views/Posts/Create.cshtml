@@ -24,6 +24,11 @@
                 <span asp-validation-for="ContentPost" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="PaymentReceipt" class="control-label"></label>
+                <input asp-for="PaymentReceipt" class="form-control" />
+                <span asp-validation-for="PaymentReceipt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label for="postImageUrl" class="control-label">Upload Image</label>
                 <input type="file" class="form-control" name="postImageUrl" />
             </div>
