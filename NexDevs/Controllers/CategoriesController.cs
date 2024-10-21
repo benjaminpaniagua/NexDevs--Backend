@@ -104,119 +104,75 @@ namespace NexDevs.Controllers
         {
             var category = new Category();
 
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             HttpResponseMessage response = await client.GetAsync($"Categories/Consultar?categoryId={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
+                var result = response.Content.ReadAsStringAsync().Result;
                 category = JsonConvert.DeserializeObject<Category>(result);
+
+                var categoryImageUrl = new CategoryImage 
+                {
+                    CategoryId = category.CategoryId,
+                    CategoryName = category.CategoryName,
+                    ImageUrl=category.CategoryImageUrl
+                };
+                return View(categoryImageUrl);
             }
-
-            return View(category);
+            return View();
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
-        public async Task<IActionResult> Edit([Bind] Category category, IFormFile categoryImageUrl)
+        public async Task<IActionResult> Edit([Bind] CategoryImage category, IFormFile categoryImageUrl)
         {
+
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             if (ModelState.IsValid)
             {
                 using (var content = new MultipartFormDataContent())
                 {
-                    // Añadir los campos de texto
+                    // Añade los campos de texto
                     content.Add(new StringContent(category.CategoryId.ToString()), "CategoryId");
                     content.Add(new StringContent(category.CategoryName), "CategoryName");
 
-                    // Si se proporciona una imagen
+                    // Añade el archivo si no es nulo
                     if (categoryImageUrl != null)
                     {
                         var fileStreamContent = new StreamContent(categoryImageUrl.OpenReadStream());
-                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue(categoryImageUrl.ContentType); // Tipo de archivo dinámico
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
                         content.Add(fileStreamContent, "CategoryImageUrl", categoryImageUrl.FileName);
-                    }
+                    } 
+                    
+                    var result = await client.PutAsync("Categories/Editar", content);
 
-                    // Llamada a la API para editar la categoría
-                    HttpResponseMessage response = await client.PutAsync("Categories/Editar", content);
+                    // if (ValidateSession(response.StatusCode) == false)
+                    // {
+                    //     return RedirectToAction("Logout", "Users");
+                    // }
 
-                    if (response.IsSuccessStatusCode)
+                    if (result.IsSuccessStatusCode)
                     {
-                        return RedirectToAction("Index", "Categories");
+                        return RedirectToAction("Index");
                     }
                     else
                     {
-                        TempData["Mensaje"] = "Error al editar la categoría";
+                        TempData["Mensaje"] = "Datos incorrectos";
+
                         return View(category);
                     }
                 }
             }
-
             return View(category);
         }
-
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit([Bind] Category category, IFormFile categoryImageUrl)
-        //{
-
-        //    //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        if (categoryImageUrl != null && categoryImageUrl.Length > 0)
-        //        {
-        //            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/categories");
-
-        //            if (!Directory.Exists(uploadsFolder))
-        //            {
-        //                Directory.CreateDirectory(uploadsFolder);
-        //            }
-
-        //            var uniqueFileName = Guid.NewGuid().ToString() + "_" + categoryImageUrl.FileName;
-
-        //            uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-        //            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-        //            using (var fileStream = new FileStream(filePath, FileMode.Create))
-        //            {
-        //                await categoryImageUrl.CopyToAsync(fileStream);
-        //            }
-
-        //            category.CategoryImageUrl = "/images/categories/" + uniqueFileName;
-        //        }
-
-        //        //Verificamos si el campo de la imagen viene vacio y de asignamos la misma imagen que tenía para que no de problemas
-        //        if (categoryImageUrl == null)
-        //        {
-        //            HttpResponseMessage response = await client.GetAsync($"Categories/Consultar?categoryId={category.CategoryId}");
-        //            var resultado = response.Content.ReadAsStringAsync().Result;
-        //            var categoryDtos = JsonConvert.DeserializeObject<Category>(resultado);
-        //            category.CategoryImageUrl = categoryDtos.CategoryImageUrl;
-        //        }
-
-        //        var result = await client.PutAsJsonAsync<Category>("Categories/Editar", category);
-
-        //        // if (ValidateSession(response.StatusCode) == false)
-        //        // {
-        //        //     return RedirectToAction("Logout", "Users");
-        //        // }
-
-        //        if (result.IsSuccessStatusCode)
-        //        {
-        //            return RedirectToAction("Index");
-        //        }
-        //        else
-        //        {
-        //            TempData["Mensaje"] = "Datos incorrectos";
-
-        //            return View(category);
-        //        }
-        //    }
-        //    return View(category);
-        //}
 
         [HttpGet]
         public async Task<IActionResult> Delete(int id)

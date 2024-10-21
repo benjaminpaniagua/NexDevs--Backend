@@ -141,6 +141,7 @@ namespace NexDevs.Controllers
                 {
                     content.Add(new StringContent(post.WorkId.ToString()), "WorkId");
                     content.Add(new StringContent(post.ContentPost ?? ""), "ContentPost");
+                    content.Add(new StringContent(post.PaymentReceipt.ToString()), "PaymentReceipt");
 
                     // Añade el archivo si no es nulo
                     if (postImageUrl != null)
@@ -167,140 +168,86 @@ namespace NexDevs.Controllers
             return View(post);
         }
 
+      [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var post = new Post();
 
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             HttpResponseMessage response = await client.GetAsync($"Posts/Consultar?postId={id}");
+
+            // if (ValidateSession(response.StatusCode) == false)
+            // {
+            //     return RedirectToAction("Logout", "Users");
+            // }
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
+                var result = response.Content.ReadAsStringAsync().Result;
                 post = JsonConvert.DeserializeObject<Post>(result);
+
+                var postImage = new PostImage
+                {
+                    PostId = post.PostId,
+                    WorkId = post.WorkId,
+                    ContentPost = post.ContentPost,
+                    PaymentReceipt = post.PaymentReceipt,
+                    ImageUrl = post.PostImageUrl,
+                    CreateAt = post.CreateAt,
+                    LikesCount = post.LikesCount,
+                    CommentsCount = post.CommentsCount,
+                    Approved = post.Approved
+                };
+                return View(postImage);
             }
-
-            return View(post);
+            return View();
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind] Post post, IFormFile postImageUrl)
+        public async Task<IActionResult> Edit([Bind] PostImage post, IFormFile postImageUrl)
         {
             if (ModelState.IsValid)
             {
                 //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-                if (postImageUrl != null && postImageUrl.Length > 0)
+                using (var content = new MultipartFormDataContent())
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/posts");
+                    content.Add(new StringContent(post.PostId.ToString()), "PostId");
+                    content.Add(new StringContent(post.WorkId.ToString()), "WorkId");
+                    content.Add(new StringContent(post.ContentPost), "ContentPost");
+                    content.Add(new StringContent(post.PaymentReceipt.ToString()), "PaymentReceipt");
+                    content.Add(new StringContent(post.CreateAt.ToString()), "CreateAt");
+                    content.Add(new StringContent(post.LikesCount.ToString()), "LikesCount");
+                    content.Add(new StringContent(post.CommentsCount.ToString()), "CommentsCount");
+                    content.Add(new StringContent(post.Approved.ToString()), "Approved");
 
-                    if (!Directory.Exists(uploadsFolder))
+                    // Añade el archivo si no es nulo
+                    if (postImageUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(postImageUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                        content.Add(fileStreamContent, "PostImageUrl", postImageUrl.FileName);
                     }
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + postImageUrl.FileName.Replace(" ", "_");
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    var result = await client.PutAsync("Posts/Editar", content);
 
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (result.IsSuccessStatusCode)
                     {
-                        await postImageUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index");
                     }
-
-                    post.PostImageUrl = "/images/posts/" + uniqueFileName;
-                }
-                else
-                {
-                    HttpResponseMessage response = await client.GetAsync($"Posts/Consultar?postId={post.PostId}");
-
-                    // if (ValidateSession(response.StatusCode) == false)
-                    // {
-                    //     return RedirectToAction("Logout", "Users");
-                    // }
-
-                    if (response.IsSuccessStatusCode)
+                    else
                     {
-                        var resultado = await response.Content.ReadAsStringAsync();
-                        var postsDtos = JsonConvert.DeserializeObject<Post>(resultado);
-                        post.PostImageUrl = postsDtos?.PostImageUrl ?? postsDtos.PostImageUrl;
+                        TempData["Mensaje"] = "Datos incorrectos";
+
+                        return View(post);
                     }
                 }
-
-                var result = await client.PutAsJsonAsync<Post>("Posts/Editar", post);
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "Datos incorrectos";
-
-                    return View(post);
-                }
-
             }
 
             return View(post);
         }
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit([Bind] Post post, IFormFile postImageUrl)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        // Si se proporciona una imagen nueva
-        //        if (postImageUrl != null && postImageUrl.Length > 0)
-        //        {
-        //            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/posts");
-
-        //            if (!Directory.Exists(uploadsFolder))
-        //            {
-        //                Directory.CreateDirectory(uploadsFolder);
-        //            }
-
-        //            var uniqueFileName = Guid.NewGuid().ToString() + "_" + postImageUrl.FileName.Replace(" ", "_");
-        //            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-        //            // Guarda la nueva imagen localmente
-        //            using (var fileStream = new FileStream(filePath, FileMode.Create))
-        //            {
-        //                await postImageUrl.CopyToAsync(fileStream);
-        //            }
-
-        //            post.PostImageUrl = "/images/posts/" + uniqueFileName;
-        //        }
-        //        else
-        //        {
-        //            // Si no se proporciona una nueva imagen, conserva la existente
-        //            HttpResponseMessage response = await client.GetAsync($"Posts/Consultar?postId={post.PostId}");
-
-        //            if (response.IsSuccessStatusCode)
-        //            {
-        //                var resultado = await response.Content.ReadAsStringAsync();
-        //                var postDto = JsonConvert.DeserializeObject<Post>(resultado);
-        //                post.PostImageUrl = postDto?.PostImageUrl ?? postDto.PostImageUrl;
-        //            }
-        //        }
-
-        //        // Envía el post actualizado a la API
-        //        var result = await client.PutAsJsonAsync<Post>("Posts/Editar", post);
-
-        //        if (result.IsSuccessStatusCode)
-        //        {
-        //            return RedirectToAction("Index");
-        //        }
-        //        else
-        //        {
-        //            TempData["Mensaje"] = "No se pudo editar el post";
-        //            return View(post);
-        //        }
-        //    }
-
-        //    return View(post);
-        //}
 
         public async Task<IActionResult> Delete(int id)
         {

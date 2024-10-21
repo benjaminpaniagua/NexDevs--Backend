@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Hosting;
+using Humanizer;
 
 namespace NexDevs.Controllers
 {
@@ -132,7 +133,7 @@ namespace NexDevs.Controllers
         }
 
 
-        
+
 
         public async Task<IActionResult> Edit(int id)
         {
@@ -150,67 +151,73 @@ namespace NexDevs.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var result = response.Content.ReadAsStringAsync().Result;
-
                 workProfile = JsonConvert.DeserializeObject<WorkProfile>(result);
+
+                var workProfileImage = new WorkProfileImage
+                {
+                    WorkId = workProfile.WorkId,
+                    Name = workProfile.Name,
+                    Email = workProfile.Email,
+                    Number = workProfile.Number,
+                    Password = workProfile.Password,
+                    Province = workProfile.Province,
+                    City = workProfile.City,
+                    WorkDescription = workProfile.WorkDescription,
+                    ImageUrl = workProfile.ProfilePictureUrl,
+                    ProfileType = workProfile.ProfileType,
+                    Salt = workProfile.Salt
+                };
+                return View(workProfileImage);
             }
-            return View(workProfile);
+            return View();
         }
 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind] WorkProfile workProfile, IFormFile profilePictureUrl)
+        public async Task<IActionResult> Edit([Bind] WorkProfileImage workProfile, IFormFile profilePictureUrl)
         {
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             if (ModelState.IsValid)
             {
-                if (profilePictureUrl != null && profilePictureUrl.Length > 0)
+                using (var content = new MultipartFormDataContent())
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/workProfile");
+                    // Añade los campos de texto
+                    content.Add(new StringContent(workProfile.WorkId.ToString()), "WorkId");
+                    content.Add(new StringContent(workProfile.Name), "Name");
+                    content.Add(new StringContent(workProfile.Email), "Email");
+                    content.Add(new StringContent(workProfile.Number), "Number");
+                    content.Add(new StringContent(workProfile.Password), "Password");
+                    content.Add(new StringContent(workProfile.Province), "Province");
+                    content.Add(new StringContent(workProfile.City), "City");
+                    content.Add(new StringContent(workProfile.WorkDescription), "WorkDescription");
+                    content.Add(new StringContent(workProfile.ProfileType.ToString()), "ProfileType");
 
-                    if (!Directory.Exists(uploadsFolder))
+                    // Añade el archivo si no es nulo
+                    if (profilePictureUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(profilePictureUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
+                        content.Add(fileStreamContent, "ProfilePictureUrl", profilePictureUrl.FileName);
                     }
+                    var result = await client.PutAsync("WorkProfile/Editar", content);
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureUrl.FileName.Replace(" ", "_");
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    // if (ValidateSession(response.StatusCode) == false)
+                    // {
+                    //     return RedirectToAction("Logout", "Users");
+                    // }
 
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (result.IsSuccessStatusCode)
                     {
-                        await profilePictureUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index");
                     }
-
-                    workProfile.ProfilePictureUrl = "/images/workProfile/" + uniqueFileName;
-                }
-                else
-                {
-                    HttpResponseMessage response = await client.GetAsync($"WorkProfile/BuscarID?id={workProfile.WorkId}");
-                    if (response.IsSuccessStatusCode)
+                    else
                     {
-                        var resultado = await response.Content.ReadAsStringAsync();
-                        var profileDtos = JsonConvert.DeserializeObject<WorkProfile>(resultado);
-                        workProfile.ProfilePictureUrl = profileDtos?.ProfilePictureUrl ?? workProfile.ProfilePictureUrl;
+                        TempData["Mensaje"] = "Datos incorrectos";
+
+                        return View(workProfile);
                     }
-                }
-
-                var result = await client.PutAsJsonAsync<WorkProfile>("WorkProfile/Editar", workProfile);
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "Datos incorrectos";
-
-                    return View(workProfile);
                 }
 
             }

@@ -109,69 +109,57 @@ namespace NexDevs.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var result = response.Content.ReadAsStringAsync().Result;
-
                 collection = JsonConvert.DeserializeObject<Collection>(result);
-            }
 
-            return View(collection);
+                var collectionImage = new CollectionImage 
+                {
+                    CollectionId=collection.CollectionId,
+                    WorkId=collection.WorkId,
+                    ImageUrl = collection.CollectionImageUrl
+                };
+                return View(collectionImage);
+            }
+            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind] Collection collection, IFormFile collectionImageUrl)
+        public async Task<IActionResult> Edit([Bind] CollectionImage collection, IFormFile collectionImageUrl)
         {
 
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             if (ModelState.IsValid)
             {
-                if (collectionImageUrl != null && collectionImageUrl.Length > 0)
+                using(var content = new MultipartFormDataContent())
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/collections");
+                    content.Add(new StringContent(collection.CollectionId.ToString()), "CollectionId");
+                    content.Add(new StringContent(collection.WorkId.ToString()), "WorkId");
 
-                    if (!Directory.Exists(uploadsFolder))
+                    // Añade el archivo si no es nulo
+                    if (collectionImageUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(collectionImageUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                        content.Add(fileStreamContent, "CollectionImageUrl", collectionImageUrl.FileName);
                     }
+                    var result = await client.PutAsync("Collections/Editar", content);
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + collectionImageUrl.FileName;
+                    // if (ValidateSession(response.StatusCode) == false)
+                    // {
+                    //     return RedirectToAction("Logout", "Users");
+                    // }
 
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (result.IsSuccessStatusCode)
                     {
-                        await collectionImageUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index");
                     }
+                    else
+                    {
+                        TempData["Mensaje"] = "Datos incorrectos";
 
-                    collection.CollectionImageUrl = "/images/collections/" + uniqueFileName;
-                }
-
-                if (collectionImageUrl == null)
-                {
-                    HttpResponseMessage response = await client.GetAsync($"Collections/ConsultarId?collectionId={collection.CollectionId}");
-                    var resultado = response.Content.ReadAsStringAsync().Result;
-                    var collectionDtos = JsonConvert.DeserializeObject<Collection>(resultado);
-                    collection.CollectionImageUrl = collectionDtos.CollectionImageUrl;
-                }
-
-                var result = await client.PutAsJsonAsync<Collection>("Collections/Editar", collection);
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "Datos incorrectos";
-
-                    return View(collection);
+                        return View(collection);
+                    }
                 }
             }
             return View(collection);

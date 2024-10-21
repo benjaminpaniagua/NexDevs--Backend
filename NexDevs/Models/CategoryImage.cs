@@ -10,6 +10,7 @@ namespace NexDevs.Models
         public string CategoryName { get; set; }
 
         public IFormFile CategoryImageUrl { get; set; }
+        public string ImageUrl { get; set; }
     }
 }
 

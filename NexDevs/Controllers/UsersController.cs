@@ -108,6 +108,8 @@ namespace NexDevs.Controllers
             return View(user);
         }
 
+
+
         [HttpGet]
         [Authorize]// protect routes
         public async Task<IActionResult> Edit(string email)
@@ -123,26 +125,43 @@ namespace NexDevs.Controllers
             //     return RedirectToAction("Logout", "Users");
             // }
 
+
             if (response.IsSuccessStatusCode)
             {
                 var result = response.Content.ReadAsStringAsync().Result;
-
                 user = JsonConvert.DeserializeObject<User>(result);
-            }
 
-            return View(user);
+                var userImage = new UserImage
+                {
+                    UserId = user.UserId,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Password = user.Password,
+                    Province = user.Province,
+                    City = user.City,
+                    Bio = user.Bio,
+                    ImageUrl = user.ProfilePictureUrl,
+                    ProfileType = user.ProfileType,
+                    Salt = user.Salt,
+                };
+                return View(userImage);
+            }
+            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize] // Protege las rutas si es necesario
-        public async Task<IActionResult> Edit([Bind] User user, IFormFile profilePictureUrl)
+        [Authorize]// protect routes
+        public async Task<IActionResult> Edit([Bind] UserImage user, IFormFile profilePictureUrl)
         {
+            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             if (ModelState.IsValid)
             {
                 using (var content = new MultipartFormDataContent())
                 {
-                    // Añadir los campos de texto
+                    // Añade los campos de texto
                     content.Add(new StringContent(user.UserId.ToString()), "UserId");
                     content.Add(new StringContent(user.FirstName), "FirstName");
                     content.Add(new StringContent(user.LastName), "LastName");
@@ -152,32 +171,38 @@ namespace NexDevs.Controllers
                     content.Add(new StringContent(user.City), "City");
                     content.Add(new StringContent(user.Bio), "Bio");
                     content.Add(new StringContent(user.ProfileType.ToString()), "ProfileType");
+                    content.Add(new StringContent(user.Salt.ToString()), "Salt");
 
-                    // Si el archivo de imagen es proporcionado
+
+                    // Añade el archivo si no es nulo
                     if (profilePictureUrl != null)
                     {
                         var fileStreamContent = new StreamContent(profilePictureUrl.OpenReadStream());
-                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajustar el tipo de contenido según sea necesario
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
                         content.Add(fileStreamContent, "ProfilePictureUrl", profilePictureUrl.FileName);
                     }
 
-                    // Llamada a la API para editar el usuario
-                    var response = await client.PutAsync("Users/Editar", content);
+                    var result = await client.PutAsync("Users/Editar", content);
 
-                    if (response.IsSuccessStatusCode)
+                    // if (ValidateSession(response.StatusCode) == false)
+                    // {
+                    //     return RedirectToAction("Logout", "Users");
+                    // }
+
+                    if (result.IsSuccessStatusCode)
                     {
-                        return RedirectToAction("Index", "Users");
+                        return RedirectToAction("Index");
                     }
                     else
                     {
-                        TempData["Mensaje"] = "No se logró editar el perfil del usuario";
+                        TempData["Mensaje"] = "Datos incorrectos";
+
                         return View(user);
                     }
                 }
             }
             return View(user);
         }
-
 
         [HttpGet]
         [Authorize]// protect routes

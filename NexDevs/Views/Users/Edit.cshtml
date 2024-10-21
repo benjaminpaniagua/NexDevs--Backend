@@ -1,4 +1,4 @@
-﻿@model NexDevs.Models.User
+﻿@model NexDevs.Models.UserImage
 
 @{
     ViewData["Title"] = "Edit";
@@ -64,7 +64,7 @@
             </div>
             <div class="form-group">
                 <label>Current Profile Picture</label>
-                <img src="@Model.ProfilePictureUrl" alt="Profile Picture" width="100" />
+                <img src="@Model.ImageUrl" alt="Profile Picture" width="100" />
             </div>
             <div class="form-group">
                 <label asp-for="ProfilePictureUrl" class="control-label">Image</label>
@@ -80,6 +80,11 @@
                     @*<option value="W">Work Profile</option>*@
                 </select>
                 <span asp-validation-for="ProfileType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Salt" type="hidden" class="control-label"></label>
+                <input type="hidden" asp-for="Salt" />
+                <span asp-validation-for="Salt" class="text-danger"></span>
             </div>
             <div class="form-group d-flex justify-content-between align-items-center mt-3">
                 <input type="submit" value="Save" class="btn btn-primary" />

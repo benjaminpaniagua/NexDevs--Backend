@@ -1,4 +1,4 @@
-﻿@model NexDevs.Models.WorkProfile
+﻿@model NexDevs.Models.WorkProfileImage
 
 @{
     ViewData["Title"] = "Edit";
@@ -51,7 +51,7 @@
             </div>
             <div class="form-group">
                 <label>Current Profile Picture</label>
-                <img src="@Model.ProfilePictureUrl" alt="Profile Picture" width="100" />
+                <img src="@Model.ImageUrl" alt="Profile Picture" width="100" />
             </div>
             <div class="form-group">
                 <label asp-for="ProfilePictureUrl" class="control-label">Image</label>
