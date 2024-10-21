@@ -171,23 +171,17 @@ namespace NexDevs.Controllers
         {
             var post = new Post();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
             HttpResponseMessage response = await client.GetAsync($"Posts/Consultar?postId={id}");
-
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
 
             if (response.IsSuccessStatusCode)
             {
-                var result = response.Content.ReadAsStringAsync().Result;
-
+                var result = await response.Content.ReadAsStringAsync();
                 post = JsonConvert.DeserializeObject<Post>(result);
             }
+
             return View(post);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -250,6 +244,63 @@ namespace NexDevs.Controllers
 
             return View(post);
         }
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit([Bind] Post post, IFormFile postImageUrl)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        // Si se proporciona una imagen nueva
+        //        if (postImageUrl != null && postImageUrl.Length > 0)
+        //        {
+        //            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/posts");
+
+        //            if (!Directory.Exists(uploadsFolder))
+        //            {
+        //                Directory.CreateDirectory(uploadsFolder);
+        //            }
+
+        //            var uniqueFileName = Guid.NewGuid().ToString() + "_" + postImageUrl.FileName.Replace(" ", "_");
+        //            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+        //            // Guarda la nueva imagen localmente
+        //            using (var fileStream = new FileStream(filePath, FileMode.Create))
+        //            {
+        //                await postImageUrl.CopyToAsync(fileStream);
+        //            }
+
+        //            post.PostImageUrl = "/images/posts/" + uniqueFileName;
+        //        }
+        //        else
+        //        {
+        //            // Si no se proporciona una nueva imagen, conserva la existente
+        //            HttpResponseMessage response = await client.GetAsync($"Posts/Consultar?postId={post.PostId}");
+
+        //            if (response.IsSuccessStatusCode)
+        //            {
+        //                var resultado = await response.Content.ReadAsStringAsync();
+        //                var postDto = JsonConvert.DeserializeObject<Post>(resultado);
+        //                post.PostImageUrl = postDto?.PostImageUrl ?? postDto.PostImageUrl;
+        //            }
+        //        }
+
+        //        // Envía el post actualizado a la API
+        //        var result = await client.PutAsJsonAsync<Post>("Posts/Editar", post);
+
+        //        if (result.IsSuccessStatusCode)
+        //        {
+        //            return RedirectToAction("Index");
+        //        }
+        //        else
+        //        {
+        //            TempData["Mensaje"] = "No se pudo editar el post";
+        //            return View(post);
+        //        }
+        //    }
+
+        //    return View(post);
+        //}
 
         public async Task<IActionResult> Delete(int id)
         {

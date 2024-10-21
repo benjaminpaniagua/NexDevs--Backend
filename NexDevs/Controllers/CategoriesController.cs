@@ -104,86 +104,119 @@ namespace NexDevs.Controllers
         {
             var category = new Category();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
             HttpResponseMessage response = await client.GetAsync($"Categories/Consultar?categoryId={id}");
-
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
 
             if (response.IsSuccessStatusCode)
             {
-                var result = response.Content.ReadAsStringAsync().Result;
-
+                var result = await response.Content.ReadAsStringAsync();
                 category = JsonConvert.DeserializeObject<Category>(result);
             }
 
             return View(category);
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit([Bind] Category category, IFormFile categoryImageUrl)
         {
-
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
             if (ModelState.IsValid)
             {
-                if (categoryImageUrl != null && categoryImageUrl.Length > 0)
+                using (var content = new MultipartFormDataContent())
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/categories");
+                    // Añadir los campos de texto
+                    content.Add(new StringContent(category.CategoryId.ToString()), "CategoryId");
+                    content.Add(new StringContent(category.CategoryName), "CategoryName");
 
-                    if (!Directory.Exists(uploadsFolder))
+                    // Si se proporciona una imagen
+                    if (categoryImageUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(categoryImageUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue(categoryImageUrl.ContentType); // Tipo de archivo dinámico
+                        content.Add(fileStreamContent, "CategoryImageUrl", categoryImageUrl.FileName);
                     }
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + categoryImageUrl.FileName;
+                    // Llamada a la API para editar la categoría
+                    HttpResponseMessage response = await client.PutAsync("Categories/Editar", content);
 
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (response.IsSuccessStatusCode)
                     {
-                        await categoryImageUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index", "Categories");
                     }
-
-                    category.CategoryImageUrl = "/images/categories/" + uniqueFileName;
-                }
-
-                //Verificamos si el campo de la imagen viene vacio y de asignamos la misma imagen que tenía para que no de problemas
-                if (categoryImageUrl == null)
-                {
-                    HttpResponseMessage response = await client.GetAsync($"Categories/Consultar?categoryId={category.CategoryId}");
-                    var resultado = response.Content.ReadAsStringAsync().Result;
-                    var categoryDtos = JsonConvert.DeserializeObject<Category>(resultado);
-                    category.CategoryImageUrl = categoryDtos.CategoryImageUrl;
-                }
-
-                var result = await client.PutAsJsonAsync<Category>("Categories/Editar", category);
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "Datos incorrectos";
-
-                    return View(category);
+                    else
+                    {
+                        TempData["Mensaje"] = "Error al editar la categoría";
+                        return View(category);
+                    }
                 }
             }
+
             return View(category);
         }
+
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit([Bind] Category category, IFormFile categoryImageUrl)
+        //{
+
+        //    //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        if (categoryImageUrl != null && categoryImageUrl.Length > 0)
+        //        {
+        //            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/categories");
+
+        //            if (!Directory.Exists(uploadsFolder))
+        //            {
+        //                Directory.CreateDirectory(uploadsFolder);
+        //            }
+
+        //            var uniqueFileName = Guid.NewGuid().ToString() + "_" + categoryImageUrl.FileName;
+
+        //            uniqueFileName = uniqueFileName.Replace(" ", "_");
+
+        //            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+        //            using (var fileStream = new FileStream(filePath, FileMode.Create))
+        //            {
+        //                await categoryImageUrl.CopyToAsync(fileStream);
+        //            }
+
+        //            category.CategoryImageUrl = "/images/categories/" + uniqueFileName;
+        //        }
+
+        //        //Verificamos si el campo de la imagen viene vacio y de asignamos la misma imagen que tenía para que no de problemas
+        //        if (categoryImageUrl == null)
+        //        {
+        //            HttpResponseMessage response = await client.GetAsync($"Categories/Consultar?categoryId={category.CategoryId}");
+        //            var resultado = response.Content.ReadAsStringAsync().Result;
+        //            var categoryDtos = JsonConvert.DeserializeObject<Category>(resultado);
+        //            category.CategoryImageUrl = categoryDtos.CategoryImageUrl;
+        //        }
+
+        //        var result = await client.PutAsJsonAsync<Category>("Categories/Editar", category);
+
+        //        // if (ValidateSession(response.StatusCode) == false)
+        //        // {
+        //        //     return RedirectToAction("Logout", "Users");
+        //        // }
+
+        //        if (result.IsSuccessStatusCode)
+        //        {
+        //            return RedirectToAction("Index");
+        //        }
+        //        else
+        //        {
+        //            TempData["Mensaje"] = "Datos incorrectos";
+
+        //            return View(category);
+        //        }
+        //    }
+        //    return View(category);
+        //}
 
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
@@ -218,7 +251,7 @@ namespace NexDevs.Controllers
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.DeleteAsync($"Categories/Eliminar?categoryId={id}");
-           
+
             // if (ValidateSession(response.StatusCode) == false)
             // {
             //     return RedirectToAction("Logout", "Users");

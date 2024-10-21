@@ -85,11 +85,10 @@ namespace NexDevs.Controllers
                     content.Add(new StringContent(user.ProfileType.ToString()), "ProfileType");
                     content.Add(new StringContent(user.Salt), "Salt");
 
-                    // Añade el archivo si no es nulo
                     if (profilePictureUrl != null)
                     {
                         var fileStreamContent = new StreamContent(profilePictureUrl.OpenReadStream());
-                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
                         content.Add(fileStreamContent, "ProfilePictureUrl", profilePictureUrl.FileName);
                     }
 
@@ -136,64 +135,49 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]// protect routes
+        [Authorize] // Protege las rutas si es necesario
         public async Task<IActionResult> Edit([Bind] User user, IFormFile profilePictureUrl)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
             if (ModelState.IsValid)
             {
-                if (profilePictureUrl != null && profilePictureUrl.Length > 0)
+                using (var content = new MultipartFormDataContent())
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/users");
+                    // Añadir los campos de texto
+                    content.Add(new StringContent(user.UserId.ToString()), "UserId");
+                    content.Add(new StringContent(user.FirstName), "FirstName");
+                    content.Add(new StringContent(user.LastName), "LastName");
+                    content.Add(new StringContent(user.Email), "Email");
+                    content.Add(new StringContent(user.Password), "Password");
+                    content.Add(new StringContent(user.Province), "Province");
+                    content.Add(new StringContent(user.City), "City");
+                    content.Add(new StringContent(user.Bio), "Bio");
+                    content.Add(new StringContent(user.ProfileType.ToString()), "ProfileType");
 
-                    if (!Directory.Exists(uploadsFolder))
+                    // Si el archivo de imagen es proporcionado
+                    if (profilePictureUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(profilePictureUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajustar el tipo de contenido según sea necesario
+                        content.Add(fileStreamContent, "ProfilePictureUrl", profilePictureUrl.FileName);
                     }
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureUrl.FileName;
+                    // Llamada a la API para editar el usuario
+                    var response = await client.PutAsync("Users/Editar", content);
 
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
-
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (response.IsSuccessStatusCode)
                     {
-                        await profilePictureUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index", "Users");
                     }
-
-                    user.ProfilePictureUrl = "/images/users/" + uniqueFileName;
-                }
-                //Verificamos si el campo de la imagen viene vacio y de asignamos la misma imagen que tenía para que no de problemas
-                if (profilePictureUrl == null)
-                {
-                    HttpResponseMessage response = await client.GetAsync($"Users/BuscarEmail?email={user.Email}");
-                    var resultado = response.Content.ReadAsStringAsync().Result;
-                    var userDtos = JsonConvert.DeserializeObject<User>(resultado);
-                    user.ProfilePictureUrl = userDtos.ProfilePictureUrl;
-                }
-
-                var result = await client.PutAsJsonAsync<User>("Users/Editar", user);
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "Datos incorrectos";
-
-                    return View(user);
+                    else
+                    {
+                        TempData["Mensaje"] = "No se logró editar el perfil del usuario";
+                        return View(user);
+                    }
                 }
             }
             return View(user);
         }
+
 
         [HttpGet]
         [Authorize]// protect routes
