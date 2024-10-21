@@ -10,5 +10,6 @@ namespace NexDevs.Models
         public int WorkId { get; set; }
 
         public IFormFile CollectionImageUrl { get; set; }
+        public string ImageUrl { get; set; }
     }
 }
