@@ -109,6 +109,8 @@ namespace NexDevs.Controllers
             return View(user);
         }
 
+
+
         [HttpGet]
         [Authorize]// protect routes
         public async Task<IActionResult> Edit(string email)
@@ -124,72 +126,79 @@ namespace NexDevs.Controllers
             //     return RedirectToAction("Logout", "Users");
             // }
 
+
             if (response.IsSuccessStatusCode)
             {
                 var result = response.Content.ReadAsStringAsync().Result;
-
                 user = JsonConvert.DeserializeObject<User>(result);
-            }
 
-            return View(user);
+                var userImage = new UserImage
+                {
+                    UserId = user.UserId,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Password = user.Password,
+                    Province = user.Province,
+                    City = user.City,
+                    Bio = user.Bio,
+                    ImageUrl = user.ProfilePictureUrl,
+                    ProfileType = user.ProfileType,
+                    Salt = user.Salt,
+                };
+                return View(userImage);
+            }
+            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]// protect routes
-        public async Task<IActionResult> Edit([Bind] User user, IFormFile profilePictureUrl)
+        public async Task<IActionResult> Edit([Bind] UserImage user, IFormFile profilePictureUrl)
         {
             //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             if (ModelState.IsValid)
             {
-                if (profilePictureUrl != null && profilePictureUrl.Length > 0)
+                using (var content = new MultipartFormDataContent())
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/users");
+                    // Añade los campos de texto
+                    content.Add(new StringContent(user.UserId.ToString()), "UserId");
+                    content.Add(new StringContent(user.FirstName), "FirstName");
+                    content.Add(new StringContent(user.LastName), "LastName");
+                    content.Add(new StringContent(user.Email), "Email");
+                    content.Add(new StringContent(user.Password), "Password");
+                    content.Add(new StringContent(user.Province), "Province");
+                    content.Add(new StringContent(user.City), "City");
+                    content.Add(new StringContent(user.Bio), "Bio");
+                    content.Add(new StringContent(user.ProfileType.ToString()), "ProfileType");
 
-                    if (!Directory.Exists(uploadsFolder))
+
+                    // Añade el archivo si no es nulo
+                    if (profilePictureUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(profilePictureUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                        content.Add(fileStreamContent, "ProfilePictureUrl", profilePictureUrl.FileName);
                     }
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureUrl.FileName;
+                    var result = await client.PostAsync("Users/Editar", content);
 
-                    uniqueFileName = uniqueFileName.Replace(" ", "_");
+                    // if (ValidateSession(response.StatusCode) == false)
+                    // {
+                    //     return RedirectToAction("Logout", "Users");
+                    // }
 
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (result.IsSuccessStatusCode)
                     {
-                        await profilePictureUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index");
                     }
+                    else
+                    {
+                        TempData["Mensaje"] = "Datos incorrectos";
 
-                    user.ProfilePictureUrl = "/images/users/" + uniqueFileName;
-                }
-                //Verificamos si el campo de la imagen viene vacio y de asignamos la misma imagen que tenía para que no de problemas
-                if (profilePictureUrl == null)
-                {
-                    HttpResponseMessage response = await client.GetAsync($"Users/BuscarEmail?email={user.Email}");
-                    var resultado = response.Content.ReadAsStringAsync().Result;
-                    var userDtos = JsonConvert.DeserializeObject<User>(resultado);
-                    user.ProfilePictureUrl = userDtos.ProfilePictureUrl;
-                }
-
-                var result = await client.PutAsJsonAsync<User>("Users/Editar", user);
-
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "Datos incorrectos";
-
-                    return View(user);
+                        return View(user);
+                    }
                 }
             }
             return View(user);
