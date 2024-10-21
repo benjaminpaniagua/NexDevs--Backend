@@ -6,17 +6,16 @@
 }
 
 <h1>Edit</h1>
-
-<h4>User</h4>
+<h4>Post</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit" enctype="multipart/form-data" method="post">
+        <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="PostId" readonly />
+            <input type="hidden" asp-for="PostId" />
             <div class="form-group">
                 <label asp-for="WorkId" class="control-label"></label>
-                <input asp-for="WorkId" class="form-control" />
+                <input asp-for="WorkId" class="form-control" type="text" readonly />
                 <span asp-validation-for="WorkId" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -24,9 +23,9 @@
                 <input asp-for="ContentPost" class="form-control" />
                 <span asp-validation-for="ContentPost" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label>Current Profile Picture</label>
-                <img src="@Model.ImageUrl" alt="Profile Picture" width="100" />
+            <div class="form-group pt-2">
+                <label>Post Image</label>
+                <img src="@Model.ImageUrl" alt="Post Picture" width="100" />
             </div>
             <div class="form-group">
                 <label asp-for="PostImageUrl" class="control-label">Image</label>
@@ -41,13 +40,13 @@
             </div>
             <div class="form-group">
                 <label asp-for="LikesCount" class="control-label"></label>
-                <input asp-for="LikesCount" class="form-control" />
+                <input asp-for="LikesCount" class="form-control" readonly/>
                 <span asp-validation-for="LikesCount" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CreateAt" class="control-label"></label>
-                <input asp-for="CreateAt" class="form-control" />
-                <span asp-validation-for="CreateAt" class="text-danger"></span>
+                <label asp-for="CommentsCount" class="control-label"></label>
+                <input asp-for="CommentsCount" class="form-control" readonly />
+                <span asp-validation-for="CommentsCount" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Approved" class="control-label"></label>
@@ -62,9 +61,6 @@
     </div>
 </div>
 
-
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
