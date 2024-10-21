@@ -172,6 +172,7 @@ namespace NexDevs.Controllers
                     content.Add(new StringContent(user.City), "City");
                     content.Add(new StringContent(user.Bio), "Bio");
                     content.Add(new StringContent(user.ProfileType.ToString()), "ProfileType");
+                    content.Add(new StringContent(user.Salt.ToString()), "Salt");
 
 
                     // Añade el archivo si no es nulo
@@ -182,7 +183,7 @@ namespace NexDevs.Controllers
                         content.Add(fileStreamContent, "ProfilePictureUrl", profilePictureUrl.FileName);
                     }
 
-                    var result = await client.PostAsync("Users/Editar", content);
+                    var result = await client.PutAsync("Users/Editar", content);
 
                     // if (ValidateSession(response.StatusCode) == false)
                     // {

@@ -167,6 +167,7 @@ namespace NexDevs.Controllers
             return View(post);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var post = new Post();
@@ -183,69 +184,63 @@ namespace NexDevs.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var result = response.Content.ReadAsStringAsync().Result;
-
                 post = JsonConvert.DeserializeObject<Post>(result);
+
+                var postImage = new PostImage
+                {
+                    PostId = post.PostId,
+                    WorkId = post.WorkId,
+                    ContentPost = post.ContentPost,
+                    ImageUrl = post.PostImageUrl,
+                    CreateAt = post.CreateAt,
+                    LikesCount = post.LikesCount,
+                    CommentsCount = post.CommentsCount,
+                    Approved = post.Approved
+                };
+                return View(postImage);
             }
-            return View(post);
+            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind] Post post, IFormFile postImageUrl)
+        public async Task<IActionResult> Edit([Bind] PostImage post, IFormFile postImageUrl)
         {
             if (ModelState.IsValid)
             {
                 //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-                if (postImageUrl != null && postImageUrl.Length > 0)
+                using (var content = new MultipartFormDataContent())
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/posts");
+                    content.Add(new StringContent(post.PostId.ToString()), "PostId");
+                    content.Add(new StringContent(post.WorkId.ToString()), "WorkId");
+                    content.Add(new StringContent(post.ContentPost), "ContentPost");
+                    content.Add(new StringContent(post.CreateAt.ToString()), "CreateAt");
+                    content.Add(new StringContent(post.LikesCount.ToString()), "LikesCount");
+                    content.Add(new StringContent(post.CommentsCount.ToString()), "CommentsCount");
+                    content.Add(new StringContent(post.Approved.ToString()), "Approved");
 
-                    if (!Directory.Exists(uploadsFolder))
+                    // Añade el archivo si no es nulo
+                    if (postImageUrl != null)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var fileStreamContent = new StreamContent(postImageUrl.OpenReadStream());
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                        content.Add(fileStreamContent, "PostImageUrl", postImageUrl.FileName);
                     }
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + postImageUrl.FileName.Replace(" ", "_");
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    var result = await client.PutAsync("Posts/Editar", content);
 
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    if (result.IsSuccessStatusCode)
                     {
-                        await postImageUrl.CopyToAsync(fileStream);
+                        return RedirectToAction("Index");
                     }
-
-                    post.PostImageUrl = "/images/posts/" + uniqueFileName;
-                }
-                else
-                {
-                    HttpResponseMessage response = await client.GetAsync($"Posts/Consultar?postId={post.PostId}");
-
-                    // if (ValidateSession(response.StatusCode) == false)
-                    // {
-                    //     return RedirectToAction("Logout", "Users");
-                    // }
-
-                    if (response.IsSuccessStatusCode)
+                    else
                     {
-                        var resultado = await response.Content.ReadAsStringAsync();
-                        var postsDtos = JsonConvert.DeserializeObject<Post>(resultado);
-                        post.PostImageUrl = postsDtos?.PostImageUrl ?? postsDtos.PostImageUrl;
+                        TempData["Mensaje"] = "Datos incorrectos";
+
+                        return View(post);
                     }
                 }
-
-                var result = await client.PutAsJsonAsync<Post>("Posts/Editar", post);
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "Datos incorrectos";
-
-                    return View(post);
-                }
-
             }
 
             return View(post);

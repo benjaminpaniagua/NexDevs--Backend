@@ -1,4 +1,4 @@
-﻿@model NexDevs.Models.Post
+﻿@model NexDevs.Models.PostImage
 
 @{
     ViewData["Title"] = "Edit";
@@ -25,11 +25,17 @@
             </div>
             <div class="form-group pt-2">
                 <label>Post Image</label>
-                <img src="@Model.PostImageUrl" alt="Post Picture" width="100" />
+                <img src="@Model.ImageUrl" alt="Post Picture" width="100" />
+            </div>
+            <div class="form-group">
+                <label asp-for="PostImageUrl" class="control-label">Image</label>
+                @* aqui se configura el  input para subir un archivo *@
+                <input asp-for="PostImageUrl" class="form-control" name="PostImageUrl" type="file" />
+                <span asp-validation-for="PostImageUrl" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="CreateAt" class="control-label"></label>
-                <input asp-for="CreateAt" class="form-control" readonly />
+                <input asp-for="CreateAt" class="form-control" />
                 <span asp-validation-for="CreateAt" class="text-danger"></span>
             </div>
             <div class="form-group">

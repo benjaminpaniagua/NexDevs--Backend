@@ -12,6 +12,7 @@ namespace NexDevs.Models
         public string ContentPost { get; set; }
 
         public IFormFile PostImageUrl { get; set; }
+        public string ImageUrl { get; set; }
 
         public DateTime CreateAt { get; set; }
 

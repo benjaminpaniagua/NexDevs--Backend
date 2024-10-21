@@ -81,6 +81,11 @@
                 </select>
                 <span asp-validation-for="ProfileType" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label asp-for="Salt" type="hidden" class="control-label"></label>
+                <input type="hidden" asp-for="Salt" />
+                <span asp-validation-for="Salt" class="text-danger"></span>
+            </div>
             <div class="form-group d-flex justify-content-between align-items-center mt-3">
                 <input type="submit" value="Save" class="btn btn-primary" />
                 <a asp-action="Index" class="btn btn-outline-dark">Back to List</a>
