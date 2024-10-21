@@ -168,7 +168,7 @@ namespace NexDevs.Controllers
             return View(post);
         }
 
-        [HttpGet]
+      [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var post = new Post();

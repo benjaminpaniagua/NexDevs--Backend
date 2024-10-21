@@ -85,11 +85,10 @@ namespace NexDevs.Controllers
                     content.Add(new StringContent(user.ProfileType.ToString()), "ProfileType");
                     content.Add(new StringContent(user.Salt), "Salt");
 
-                    // Añade el archivo si no es nulo
                     if (profilePictureUrl != null)
                     {
                         var fileStreamContent = new StreamContent(profilePictureUrl.OpenReadStream());
-                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
                         content.Add(fileStreamContent, "ProfilePictureUrl", profilePictureUrl.FileName);
                     }
 
