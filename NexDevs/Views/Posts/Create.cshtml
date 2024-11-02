@@ -1,8 +1,7 @@
-﻿@model NexDevs.Models.Post
+﻿@model NexDevs.Models.PostImage
 
 @{
     ViewData["Title"] = "Create";
-    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Create</h1>
@@ -14,23 +13,27 @@
         <form asp-action="Create" enctype="multipart/form-data" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="WorkId" class="control-label"></label>
+                <label asp-for="WorkId" class="control-label">WorkId</label>
                 <input asp-for="WorkId" class="form-control" />
                 <span asp-validation-for="WorkId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ContentPost" class="control-label"></label>
+                <label asp-for="ContentPost" class="control-label">Content Post</label>
                 <input asp-for="ContentPost" class="form-control" />
                 <span asp-validation-for="ContentPost" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="PaymentReceipt" class="control-label"></label>
+                <label asp-for="PaymentReceipt" class="control-label">Payment Receipt</label>
                 <input asp-for="PaymentReceipt" class="form-control" />
                 <span asp-validation-for="PaymentReceipt" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label for="postImageUrl" class="control-label">Upload Image</label>
-                <input type="file" class="form-control" name="postImageUrl" />
+            <div>
+                <div class="form-group">
+                <label asp-for="PostImageUrl" class="control-label">Image</label>
+                @* aqui se configura el  input para subir un archivo *@
+                <input asp-for="PostImageUrl" class="form-control" name="PostImageUrl" type="file" />
+                <span asp-validation-for="PostImageUrl" class="text-danger"></span>
+            </div>
             </div>
             <div class="form-group d-flex justify-content-between align-items-center mt-3">
                 <input type="submit" value="Create" class="btn btn-primary" />
@@ -39,6 +42,7 @@
         </form>
     </div>
 </div>
+
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

@@ -59,6 +59,8 @@ namespace NexDevs.Controllers
         [Authorize] // Protege las rutas si es necesario
         public async Task<IActionResult> Create([Bind] CollectionImage collection, IFormFile collectionImageUrl)
         {
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             if (ModelState.IsValid)
             {
                 using (var content = new MultipartFormDataContent())
@@ -75,6 +77,11 @@ namespace NexDevs.Controllers
                     }
 
                     var response = await client.PostAsync("Collections/Agregar", content);
+
+                    if (ValidateSession(response.StatusCode) == false)
+                    {
+                        return RedirectToAction("Logout", "Users");
+                    }
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -111,10 +118,10 @@ namespace NexDevs.Controllers
                 var result = response.Content.ReadAsStringAsync().Result;
                 collection = JsonConvert.DeserializeObject<Collection>(result);
 
-                var collectionImage = new CollectionImage 
+                var collectionImage = new CollectionImage
                 {
-                    CollectionId=collection.CollectionId,
-                    WorkId=collection.WorkId,
+                    CollectionId = collection.CollectionId,
+                    WorkId = collection.WorkId,
                     ImageUrl = collection.CollectionImageUrl
                 };
                 return View(collectionImage);
@@ -131,7 +138,7 @@ namespace NexDevs.Controllers
 
             if (ModelState.IsValid)
             {
-                using(var content = new MultipartFormDataContent())
+                using (var content = new MultipartFormDataContent())
                 {
                     content.Add(new StringContent(collection.CollectionId.ToString()), "CollectionId");
                     content.Add(new StringContent(collection.WorkId.ToString()), "WorkId");
@@ -198,7 +205,7 @@ namespace NexDevs.Controllers
             client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.DeleteAsync($"Collections/Eliminar?id={id}");
-           
+
             if (ValidateSession(response.StatusCode) == false)
             {
                 return RedirectToAction("Logout", "Users");

@@ -125,6 +125,8 @@ namespace NexDevs.Controllers
         [Authorize] // Protege las rutas si es necesario
         public async Task<IActionResult> Create([Bind] PostImage post, IFormFile postImageUrl)
         {
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             if (ModelState.IsValid)
             {
                 // Asignar valores predeterminados al post
@@ -144,11 +146,17 @@ namespace NexDevs.Controllers
                     if (postImageUrl != null)
                     {
                         var fileStreamContent = new StreamContent(postImageUrl.OpenReadStream());
-                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
+                        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue(postImageUrl.ContentType); // Ajusta el tipo de contenido según sea necesario
                         content.Add(fileStreamContent, "PostImageUrl", postImageUrl.FileName);
                     }
 
                     var response = await client.PostAsync("Posts/Agregar", content);
+
+                    if (ValidateSession(response.StatusCode) == false)
+                    {
+                        return RedirectToAction("Logout", "Users");
+                    }
+
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -229,7 +237,7 @@ namespace NexDevs.Controllers
                     }
 
                     var result = await client.PutAsync("Posts/Editar", content);
-                   
+
                     if (ValidateSession(result.StatusCode) == false)
                     {
                         return RedirectToAction("Logout", "Users");

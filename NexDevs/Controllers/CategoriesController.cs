@@ -66,6 +66,8 @@ namespace NexDevs.Controllers
         [Authorize] // Protege las rutas si es necesario
         public async Task<IActionResult> Create([Bind] CategoryImage category, IFormFile categoryImageUrl)
         {
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             if (ModelState.IsValid)
             {
 
@@ -83,6 +85,11 @@ namespace NexDevs.Controllers
                     }
 
                     var response = await client.PostAsync("Categories/Agregar", content);
+
+                    if (ValidateSession(response.StatusCode) == false)
+                    {
+                        return RedirectToAction("Logout", "Users");
+                    }
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -118,11 +125,11 @@ namespace NexDevs.Controllers
                 var result = response.Content.ReadAsStringAsync().Result;
                 category = JsonConvert.DeserializeObject<Category>(result);
 
-                var categoryImageUrl = new CategoryImage 
+                var categoryImageUrl = new CategoryImage
                 {
                     CategoryId = category.CategoryId,
                     CategoryName = category.CategoryName,
-                    ImageUrl=category.CategoryImageUrl
+                    ImageUrl = category.CategoryImageUrl
                 };
                 return View(categoryImageUrl);
             }
@@ -150,8 +157,8 @@ namespace NexDevs.Controllers
                         var fileStreamContent = new StreamContent(categoryImageUrl.OpenReadStream());
                         fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // Ajusta el tipo de contenido según sea necesario
                         content.Add(fileStreamContent, "CategoryImageUrl", categoryImageUrl.FileName);
-                    } 
-                    
+                    }
+
                     var result = await client.PutAsync("Categories/Editar", content);
 
                     if (ValidateSession(result.StatusCode) == false)
