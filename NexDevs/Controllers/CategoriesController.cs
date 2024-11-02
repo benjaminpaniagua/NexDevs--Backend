@@ -29,14 +29,14 @@ namespace NexDevs.Controllers
         {
             List<Category> listCategories = new List<Category>();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync("Categories/Listado");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -104,14 +104,14 @@ namespace NexDevs.Controllers
         {
             var category = new Category();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Categories/Consultar?categoryId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -134,7 +134,7 @@ namespace NexDevs.Controllers
         public async Task<IActionResult> Edit([Bind] CategoryImage category, IFormFile categoryImageUrl)
         {
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             if (ModelState.IsValid)
             {
@@ -154,10 +154,10 @@ namespace NexDevs.Controllers
                     
                     var result = await client.PutAsync("Categories/Editar", content);
 
-                    // if (ValidateSession(response.StatusCode) == false)
-                    // {
-                    //     return RedirectToAction("Logout", "Users");
-                    // }
+                    if (ValidateSession(result.StatusCode) == false)
+                    {
+                        return RedirectToAction("Logout", "Users");
+                    }
 
                     if (result.IsSuccessStatusCode)
                     {
@@ -179,14 +179,14 @@ namespace NexDevs.Controllers
         {
             var category = new Category();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage mensaje = await client.GetAsync($"Categories/Consultar?categoryId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(mensaje.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (mensaje.IsSuccessStatusCode)
             {
@@ -204,14 +204,14 @@ namespace NexDevs.Controllers
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.DeleteAsync($"Categories/Eliminar?categoryId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             return RedirectToAction("Index");
         }
@@ -221,14 +221,14 @@ namespace NexDevs.Controllers
         {
             var category = new Category();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Categories/Consultar?categoryId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {

@@ -1,4 +1,4 @@
-﻿@model NexDevs.Models.WorkCategory
+﻿@model NexDevs.Models.WorkSkill
 
 @{
     ViewData["Title"] = "Details";
@@ -7,9 +7,15 @@
 <h1>Details</h1>
 
 <div>
-    <h4>Work Category</h4>
+    <h4>Work Skill</h4>
     <hr />
     <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.WorkSkillId)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.WorkSkillId)
+        </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.WorkId)
         </dt>
@@ -17,10 +23,10 @@
             @Html.DisplayFor(model => model.WorkId)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CategoryId)
+            @Html.DisplayNameFor(model => model.SkillId)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CategoryId)
+            @Html.DisplayFor(model => model.SkillId)
         </dd>
     </dl>
 </div>

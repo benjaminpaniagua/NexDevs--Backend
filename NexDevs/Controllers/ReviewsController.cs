@@ -23,14 +23,14 @@ namespace NexDevs.Controllers
         {
             List<Review> listReviews = new List<Review>();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync("Reviews/Listado");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -58,6 +58,8 @@ namespace NexDevs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind] Review review)
         {
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             if (ModelState.IsValid)
             {
                 var add = client.PostAsJsonAsync<Review>("Reviews/Agregar", review);
@@ -65,10 +67,10 @@ namespace NexDevs.Controllers
 
                 var result = add.Result;
 
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
+                if (ValidateSession(result.StatusCode) == false)
+                {
+                    return RedirectToAction("Logout", "Users");
+                }
 
                 if (result.IsSuccessStatusCode)
                 {
@@ -89,14 +91,14 @@ namespace NexDevs.Controllers
         {
             var review = new Review();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Reviews/Consultar?reviewId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -112,14 +114,16 @@ namespace NexDevs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit([Bind] Review review)
         {
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             if (ModelState.IsValid)
             {
                 var result = await client.PutAsJsonAsync<Review>("Reviews/Editar", review);
 
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
+                if (ValidateSession(result.StatusCode) == false)
+                {
+                    return RedirectToAction("Logout", "Users");
+                }
 
                 if (result.IsSuccessStatusCode)
                 {
@@ -140,14 +144,14 @@ namespace NexDevs.Controllers
         {
             var review = new Review();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage mensaje = await client.GetAsync($"Reviews/Consultar?reviewId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(mensaje.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (mensaje.IsSuccessStatusCode)
             {
@@ -165,12 +169,15 @@ namespace NexDevs.Controllers
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+           
             HttpResponseMessage response = await client.DeleteAsync($"Reviews/Eliminar?reviewId=={id}");
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
+
             return RedirectToAction("Index");
         }
 
@@ -179,14 +186,14 @@ namespace NexDevs.Controllers
         {
             var review = new Review();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Reviews/Consultar?reviewId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {

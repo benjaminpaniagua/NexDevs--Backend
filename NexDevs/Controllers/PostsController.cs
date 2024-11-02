@@ -26,15 +26,14 @@ namespace NexDevs.Controllers
         {
             List<Post> posts = new List<Post>();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync("Posts/ListadoGeneral");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -50,15 +49,14 @@ namespace NexDevs.Controllers
         {
             List<Post> posts = new List<Post>();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync("Posts/Aprobados");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -74,15 +72,14 @@ namespace NexDevs.Controllers
         {
             List<Post> posts = new List<Post>();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync("Posts/PorAprobar");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -98,14 +95,14 @@ namespace NexDevs.Controllers
         {
             var post = new Post();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Posts/Consultar?postId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -168,19 +165,19 @@ namespace NexDevs.Controllers
             return View(post);
         }
 
-      [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var post = new Post();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Posts/Consultar?postId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -210,7 +207,7 @@ namespace NexDevs.Controllers
         {
             if (ModelState.IsValid)
             {
-                //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+                client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
                 using (var content = new MultipartFormDataContent())
                 {
@@ -232,6 +229,11 @@ namespace NexDevs.Controllers
                     }
 
                     var result = await client.PutAsync("Posts/Editar", content);
+                   
+                    if (ValidateSession(result.StatusCode) == false)
+                    {
+                        return RedirectToAction("Logout", "Users");
+                    }
 
                     if (result.IsSuccessStatusCode)
                     {
@@ -253,14 +255,14 @@ namespace NexDevs.Controllers
         {
             var post = new Post();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Posts/Consultar?postId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -280,14 +282,14 @@ namespace NexDevs.Controllers
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.DeleteAsync($"Posts/Eliminar?postId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             return RedirectToAction("Index");
         }

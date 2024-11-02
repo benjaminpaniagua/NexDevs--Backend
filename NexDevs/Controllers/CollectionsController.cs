@@ -29,14 +29,14 @@ namespace NexDevs.Controllers
         {
             List<Collection> listCollections = new List<Collection>();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync("Collections/Listado");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -97,14 +97,14 @@ namespace NexDevs.Controllers
         {
             var collection = new Collection();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Collections/ConsultarId?collectionId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -127,7 +127,7 @@ namespace NexDevs.Controllers
         public async Task<IActionResult> Edit([Bind] CollectionImage collection, IFormFile collectionImageUrl)
         {
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             if (ModelState.IsValid)
             {
@@ -145,10 +145,10 @@ namespace NexDevs.Controllers
                     }
                     var result = await client.PutAsync("Collections/Editar", content);
 
-                    // if (ValidateSession(response.StatusCode) == false)
-                    // {
-                    //     return RedirectToAction("Logout", "Users");
-                    // }
+                    if (ValidateSession(result.StatusCode) == false)
+                    {
+                        return RedirectToAction("Logout", "Users");
+                    }
 
                     if (result.IsSuccessStatusCode)
                     {
@@ -170,14 +170,14 @@ namespace NexDevs.Controllers
         {
             var collection = new Collection();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage mensaje = await client.GetAsync($"Collections/ConsultarId?collectionId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(mensaje.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (mensaje.IsSuccessStatusCode)
             {
@@ -195,14 +195,14 @@ namespace NexDevs.Controllers
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.DeleteAsync($"Collections/Eliminar?id={id}");
            
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             return RedirectToAction("Index");
         }
@@ -212,14 +212,14 @@ namespace NexDevs.Controllers
         {
             var collection = new Collection();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Collections/ConsultarId?collectionId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {

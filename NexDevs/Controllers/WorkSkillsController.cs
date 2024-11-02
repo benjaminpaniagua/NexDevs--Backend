@@ -1,31 +1,33 @@
-﻿using NexDevs.Models;
+using NexDevs.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.CodeAnalysis;
 
 namespace NexDevs.Controllers
 {
     [Authorize]// protect routes
-    public class CommentsController : Controller
+    public class WorkSkillsController : Controller
     {
         private NetworkAPI networkAPI;
         private HttpClient client;
 
-        public CommentsController()
+        public WorkSkillsController()
         {
             networkAPI = new NetworkAPI();
             client = networkAPI.Initial();
         }
 
-        public async Task<IActionResult> Index(string search)
+        public async Task<IActionResult> Index()
         {
-            List<Comment> listComments = new List<Comment>();
+            List<WorkSkill> listWorkSkills = new List<WorkSkill>();
+
 
             client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage response = await client.GetAsync("Comments/Listado");
+            HttpResponseMessage response = await client.GetAsync("WorkSkills/Listado");
 
             if (ValidateSession(response.StatusCode) == false)
             {
@@ -36,66 +38,54 @@ namespace NexDevs.Controllers
             {
                 var result = await response.Content.ReadAsStringAsync();
 
-                listComments = JsonConvert.DeserializeObject<List<Comment>>(result);
+                listWorkSkills = JsonConvert.DeserializeObject<List<WorkSkill>>(result);
             }
 
-            if (!string.IsNullOrEmpty(search))
-            {
-                listComments = listComments
-                                .Where(comment => comment.ContentComment.Contains(search, StringComparison.OrdinalIgnoreCase))
-                                .ToList();
-            }
-
-            return View(listComments);
+            return View(listWorkSkills);
         }
 
         [HttpGet]
-        public IActionResult Create() 
-        { 
-            return View(); 
+        public IActionResult Create()
+        {
+            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind] Comment comment)
+        public async Task<IActionResult> Create([Bind] WorkSkill workSkill)
         {
             client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            if (ModelState.IsValid)
+            var add = client.PostAsJsonAsync<WorkSkill>("WorkSkills/Agregar", workSkill);
+            await add;
+
+            var result = add.Result;
+
+            if (ValidateSession(result.StatusCode) == false)
             {
-                comment.CreateAt = DateTime.Now;
-                var add = client.PostAsJsonAsync<Comment>("Comments/Agregar", comment);
-                await add;
-
-                var result = add.Result;
-
-                if (ValidateSession(result.StatusCode) == false)
-                {
-                    return RedirectToAction("Logout", "Users");
-                }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index", "Comments");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "No se logró registrar el comentario";
-
-                    return View(comment);
-                }
+                return RedirectToAction("Logout", "Users");
             }
-            return View(comment);
+
+            if (result.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Index", "WorkSkills");
+            }
+            else
+            {
+                TempData["Mensaje"] = "No se logró registrar la categoria";
+
+                return View(workSkill);
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var comment = new Comment();
+            var workSkill = new WorkSkill();
 
             client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage response = await client.GetAsync($"Comments/ConsultarId?commentId={id}");
+            HttpResponseMessage response = await client.GetAsync($"WorkSkills/ConsultarId?workSkillId={id}");
 
             if (ValidateSession(response.StatusCode) == false)
             {
@@ -106,49 +96,45 @@ namespace NexDevs.Controllers
             {
                 var result = response.Content.ReadAsStringAsync().Result;
 
-                comment = JsonConvert.DeserializeObject<Comment>(result);
+                workSkill = JsonConvert.DeserializeObject<WorkSkill>(result);
             }
 
-            return View(comment);
+            return View(workSkill);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind] Comment comment)
+        public async Task<IActionResult> Edit([Bind] WorkSkill workSkill)
         {
             client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            if (ModelState.IsValid)
+            var result = await client.PutAsJsonAsync<WorkSkill>("WorkSkills/Editar", workSkill);
+
+            if (ValidateSession(result.StatusCode) == false)
             {
-                var result = await client.PutAsJsonAsync<Comment>("Comments/Editar", comment);
-
-                if (ValidateSession(result.StatusCode) == false)
-                {
-                    return RedirectToAction("Logout", "Users");
-                }
-
-                if (result.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Mensaje"] = "Datos incorrectos";
-
-                    return View(comment);
-                }
+                return RedirectToAction("Logout", "Users");
             }
-            return View(comment);
+
+            if (result.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["Mensaje"] = "Datos incorrectos";
+
+                return View(result);
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var comment = new Comment();
-
+            var workSkill = new WorkSkill();
+            
             client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage mensaje = await client.GetAsync($"Comments/ConsultarId?commentId={id}");
+            HttpResponseMessage mensaje = await client.GetAsync($"WorkSkills/ConsultarId?workSkillId={id}");
 
             if (ValidateSession(mensaje.StatusCode) == false)
             {
@@ -160,10 +146,10 @@ namespace NexDevs.Controllers
                 var result = mensaje.Content.ReadAsStringAsync().Result;
 
                 //conversion json a obj
-                comment = JsonConvert.DeserializeObject<Comment>(result);
+                workSkill = JsonConvert.DeserializeObject<WorkSkill>(result);
             }
 
-            return View(comment);
+            return View(workSkill);
         }
 
         [HttpPost]
@@ -173,24 +159,24 @@ namespace NexDevs.Controllers
         {
             client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage response = await client.DeleteAsync($"Comments/Eliminar?commentId={id}");
-            
+            HttpResponseMessage response = await client.DeleteAsync($"WorkSkills/Eliminar?id={id}");
+          
             if (ValidateSession(response.StatusCode) == false)
             {
                 return RedirectToAction("Logout", "Users");
+            
             }
-
             return RedirectToAction("Index");
         }
 
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var comment = new Comment();
+            var workSkill = new WorkSkill();
 
             client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
-            HttpResponseMessage response = await client.GetAsync($"Comments/ConsultarId?commentId={id}");
+            HttpResponseMessage response = await client.GetAsync($"WorkSkills/ConsultarId?workSkillId={id}");
 
             if (ValidateSession(response.StatusCode) == false)
             {
@@ -201,10 +187,10 @@ namespace NexDevs.Controllers
             {
                 var result = response.Content.ReadAsStringAsync().Result;
 
-                comment = JsonConvert.DeserializeObject<Comment>(result);
+                workSkill = JsonConvert.DeserializeObject<WorkSkill>(result);
             }
 
-            return View(comment);
+            return View(workSkill);
         }
 
         private AuthenticationHeaderValue AutorizacionToken()
