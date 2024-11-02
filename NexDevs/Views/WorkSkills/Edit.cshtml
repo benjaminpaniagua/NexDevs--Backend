@@ -1,4 +1,4 @@
-﻿@model NexDevs.Models.WorkCategory
+﻿@model NexDevs.Models.WorkSkill
 
 @{
     ViewData["Title"] = "Edit";
@@ -6,22 +6,22 @@
 
 <h1>Edit</h1>
 
-<h4>Work Category</h4>
+<h4>Work Skills</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="WorkSkillId" />
             <div class="form-group">
                 <label asp-for="WorkId" class="control-label">Work Id</label>
                 <input asp-for="WorkId" class="form-control" />
                 <span asp-validation-for="WorkId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CategoryId" class="control-label">Category Id</label>
-                <input asp-for="CategoryId" class="form-control" />
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                <label asp-for="SkillId" class="control-label">Category Id</label>
+                <input asp-for="SkillId" class="form-control" />
+                <span asp-validation-for="SkillId" class="text-danger"></span>
             </div>
             <div class="form-group d-flex justify-content-between align-items-center mt-3">
                 <input type="submit" value="Save" class="btn btn-primary" />

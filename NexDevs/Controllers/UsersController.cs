@@ -8,6 +8,7 @@ using System.Net;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace NexDevs.Controllers
 {
@@ -30,14 +31,14 @@ namespace NexDevs.Controllers
         {
             List<User> listUsers = new List<User>();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync("Users/Listado");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -116,14 +117,14 @@ namespace NexDevs.Controllers
         {
             var user = new User();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Users/BuscarEmail?email={email}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
 
             if (response.IsSuccessStatusCode)
@@ -155,7 +156,7 @@ namespace NexDevs.Controllers
         [Authorize]// protect routes
         public async Task<IActionResult> Edit([Bind] UserImage user, IFormFile profilePictureUrl)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             if (ModelState.IsValid)
             {
@@ -184,10 +185,10 @@ namespace NexDevs.Controllers
 
                     var result = await client.PutAsync("Users/Editar", content);
 
-                    // if (ValidateSession(response.StatusCode) == false)
-                    // {
-                    //     return RedirectToAction("Logout", "Users");
-                    // }
+                    if (ValidateSession(result.StatusCode) == false)
+                    {
+                        return RedirectToAction("Logout", "Users");
+                    }
 
                     if (result.IsSuccessStatusCode)
                     {
@@ -210,14 +211,14 @@ namespace NexDevs.Controllers
         {
             var user = new User();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage mensaje = await client.GetAsync($"Users/BuscarEmail?email={email}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(mensaje.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (mensaje.IsSuccessStatusCode)
             {
@@ -236,14 +237,14 @@ namespace NexDevs.Controllers
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(string email)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.DeleteAsync($"Users/Eliminar?email={email}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             return RedirectToAction("Index");
         }
@@ -254,14 +255,14 @@ namespace NexDevs.Controllers
         {
             var user = new User();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Users/BuscarEmail?email={email}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -289,7 +290,6 @@ namespace NexDevs.Controllers
 
         private bool ValidateSession(HttpStatusCode result)
         {
-            //The token has expired so the session must be closed
             if (result == HttpStatusCode.Unauthorized)
             {
                 TempData["MensajeSesion"] = "Su sesion ha expirado o no es válida";
@@ -311,36 +311,64 @@ namespace NexDevs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login([Bind] User temp)
+        public async Task<IActionResult> Login(User loginUser)
         {
-            if (!ModelState.IsValid) // Verifica si el modelo es válido
+            AutorizacionResponse autorizacion = null;
+
+            if (User == null)
             {
-                return View(temp); // Devuelve la vista con errores
+                TempData["Mensaje"] = "Usuario o contraseña incorrecta";
+                return View();
+            }
+            // Serializa el objeto `loginUser` a JSON
+            var user = new StringContent(
+                Newtonsoft.Json.JsonConvert.SerializeObject(loginUser),
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+            HttpResponseMessage response = await client.PostAsync($"Users/Login", user);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadAsStringAsync().Result;
+                autorizacion = JsonConvert.DeserializeObject<AutorizacionResponse>(result);
             }
 
-            User user = ValidateUser(temp); // Valida el usuario
-
-            if (user != null)
+            if (autorizacion != null)
             {
-                var userClaims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, temp.Email), // Puedes agregar más claims si es necesario
-            new Claim(ClaimTypes.NameIdentifier, temp.UserId.ToString()) // Agregar ID de usuario
-        };
+                HttpContext.Session.SetString("token", autorizacion.Token);
 
-                var granIdentity = new ClaimsIdentity(userClaims, "User Identity");
-                var userPrincipal = new ClaimsPrincipal(granIdentity);
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true
+                };
 
-                await HttpContext.SignInAsync(userPrincipal); // Inicia sesión
-                return RedirectToAction("Index", "Home"); // se redirige a la vista principal
+                client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
+                var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+                identity.AddClaim(new Claim(ClaimTypes.Name, loginUser.Email));
+                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, loginUser.UserId.ToString()));
+                identity.AddClaim(new Claim("TipoUsuario", loginUser.ProfileType.ToString()));
+                var principal =  new ClaimsPrincipal(identity);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                return RedirectToAction("Index", "Home");
             }
             else
             {
-                //message in case of invalid user
-                TempData["Message"] = "Invalid User";
-                return View(temp); //return the view with the user data
+                TempData["Mensje"] = "Intente de nuevo";
+                return View(loginUser);
             }
         }
+
+
+        public async Task<IActionResult> LogOut()
+        {
+            await HttpContext.SignOutAsync(); 
+             HttpContext.Session.SetString("token", "");
+            return RedirectToAction("Index", "Home"); 
+        }
+
 
         private User ValidateUser(User temp)
         {
@@ -357,12 +385,6 @@ namespace NexDevs.Controllers
                 }
             }
             return userAuth;
-        }
-
-        public async Task<IActionResult> LogOut()
-        {
-            await HttpContext.SignOutAsync(); //close the session
-            return RedirectToAction("Index", "Home"); //redirect to the main view
         }
 
         [HttpGet]

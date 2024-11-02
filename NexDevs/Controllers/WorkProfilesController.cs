@@ -32,14 +32,14 @@ namespace NexDevs.Controllers
         {
             List<WorkProfile> listWorkProfiles = new List<WorkProfile>();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync("WorkProfile/Listado");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -63,14 +63,14 @@ namespace NexDevs.Controllers
         {
             var workProfile = new WorkProfile();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -139,14 +139,14 @@ namespace NexDevs.Controllers
         {
             var workProfile = new WorkProfile();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -177,7 +177,7 @@ namespace NexDevs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit([Bind] WorkProfileImage workProfile, IFormFile profilePictureUrl)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             if (ModelState.IsValid)
             {
@@ -203,10 +203,10 @@ namespace NexDevs.Controllers
                     }
                     var result = await client.PutAsync("WorkProfile/Editar", content);
 
-                    // if (ValidateSession(response.StatusCode) == false)
-                    // {
-                    //     return RedirectToAction("Logout", "Users");
-                    // }
+                    if (ValidateSession(result.StatusCode) == false)
+                    {
+                        return RedirectToAction("Logout", "Users");
+                    }
 
                     if (result.IsSuccessStatusCode)
                     {
@@ -230,14 +230,14 @@ namespace NexDevs.Controllers
         {
             var workProfile = new WorkProfile();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage profile = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(profile.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (profile.IsSuccessStatusCode)
             {
@@ -255,16 +255,16 @@ namespace NexDevs.Controllers
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             var workProfile = new WorkProfile();
 
             HttpResponseMessage profile = await client.GetAsync($"WorkProfile/BuscarID?id={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(profile.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (profile.IsSuccessStatusCode)
             {

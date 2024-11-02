@@ -59,6 +59,8 @@ namespace NexDevs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind] Skill skill)
         {
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             if (ModelState.IsValid)
             {
                 var add = client.PostAsJsonAsync<Skill>("Skills/Agregar", skill);
@@ -66,10 +68,10 @@ namespace NexDevs.Controllers
 
                 var result = add.Result;
 
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
+                if (ValidateSession(result.StatusCode) == false)
+                {
+                    return RedirectToAction("Logout", "Users");
+                }
 
                 if (result.IsSuccessStatusCode)
                 {
@@ -91,14 +93,14 @@ namespace NexDevs.Controllers
         {
             var skill = new Skill();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Skills/Consultar?skillId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -114,14 +116,16 @@ namespace NexDevs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit([Bind] Skill skill)
         {
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             if (ModelState.IsValid)
             {
                 var result = await client.PutAsJsonAsync<Skill>("Skills/Editar", skill);
 
-                // if (ValidateSession(response.StatusCode) == false)
-                // {
-                //     return RedirectToAction("Logout", "Users");
-                // }
+                if (ValidateSession(result.StatusCode) == false)
+                {
+                    return RedirectToAction("Logout", "Users");
+                }
 
                 if (result.IsSuccessStatusCode)
                 {
@@ -142,14 +146,14 @@ namespace NexDevs.Controllers
         {
             var skill = new Skill();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage mensaje = await client.GetAsync($"Skills/Consultar?skillId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(mensaje.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (mensaje.IsSuccessStatusCode)
             {
@@ -167,12 +171,15 @@ namespace NexDevs.Controllers
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+
             HttpResponseMessage response = await client.DeleteAsync($"Skills/Eliminar?id={id}");
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
+
             return RedirectToAction("Index");
         }
 
@@ -181,14 +188,14 @@ namespace NexDevs.Controllers
         {
             var skill = new Skill();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"Skills/Consultar?skillId={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {

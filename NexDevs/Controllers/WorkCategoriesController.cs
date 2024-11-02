@@ -24,14 +24,14 @@ namespace NexDevs.Controllers
             List<WorkCategory> listWorkCategories = new List<WorkCategory>();
 
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync("WorkCategories/Listado");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -53,17 +53,17 @@ namespace NexDevs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind] WorkCategory workCategory)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             var add = client.PostAsJsonAsync<WorkCategory>("WorkCategories/Agregar", workCategory);
             await add;
 
             var result = add.Result;
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(result.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (result.IsSuccessStatusCode)
             {
@@ -82,14 +82,14 @@ namespace NexDevs.Controllers
         {
             var workCategory = new WorkCategory();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"WorkCategories/ConsultarId?id={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -105,13 +105,14 @@ namespace NexDevs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit([Bind] WorkCategory workCategory)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            
             var result = await client.PutAsJsonAsync<WorkCategory>("WorkCategories/Editar", workCategory);
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(result.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (result.IsSuccessStatusCode)
             {
@@ -130,14 +131,14 @@ namespace NexDevs.Controllers
         {
             var workCategory = new WorkCategory();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage mensaje = await client.GetAsync($"WorkCategories/ConsultarId?id={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(mensaje.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (mensaje.IsSuccessStatusCode)
             {
@@ -155,15 +156,15 @@ namespace NexDevs.Controllers
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
-
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.DeleteAsync($"WorkCategories/Eliminar?id={id}");
-
+          
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            
+            }
             return RedirectToAction("Index");
         }
 
@@ -172,14 +173,14 @@ namespace NexDevs.Controllers
         {
             var workCategory = new WorkCategory();
 
-            //client.DefaultRequestHeaders.Authorization = AutorizacionToken();
+            client.DefaultRequestHeaders.Authorization = AutorizacionToken();
 
             HttpResponseMessage response = await client.GetAsync($"WorkCategories/ConsultarId?id={id}");
 
-            // if (ValidateSession(response.StatusCode) == false)
-            // {
-            //     return RedirectToAction("Logout", "Users");
-            // }
+            if (ValidateSession(response.StatusCode) == false)
+            {
+                return RedirectToAction("Logout", "Users");
+            }
 
             if (response.IsSuccessStatusCode)
             {
