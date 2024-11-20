@@ -8,7 +8,7 @@
             var client = new HttpClient();
 
             //URL API
-            client.BaseAddress = new Uri("http://localhost:5146/");
+            client.BaseAddress = new Uri("https://nexdevsapi.somee.com/");
 
             return client;
         }
